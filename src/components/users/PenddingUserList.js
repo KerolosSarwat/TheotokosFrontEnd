@@ -10,7 +10,7 @@ const UserList = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState({});
-  const [sortConfig, setSortConfig] = useState({
+  const [sortConfig] = useState({
     key: 'code',
     direction: 'ascending'
   });
@@ -122,7 +122,7 @@ const UserList = () => {
           }));
 
           // Send to server
-          const result = await userService.bulkUpdateUsers(transformedData);
+          await userService.bulkUpdateUsers(transformedData);
           
           setUploadSuccess(true);
           setUploadLoading(false);
@@ -153,13 +153,13 @@ const UserList = () => {
   };
 
   // Sort users
-  const requestSort = (key) => {
-    let direction = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
+  // const requestSort = (key) => {
+  //   let direction = 'ascending';
+  //   if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+  //     direction = 'descending';
+  //   }
+  //   setSortConfig({ key, direction });
+  // };
 
   const sortedUsers = useMemo(() => {
     const sortableUsers = Object.values(filteredUsers);
@@ -183,21 +183,6 @@ const UserList = () => {
   const getClassNamesFor = (name) => {
     if (!sortConfig) return;
     return sortConfig.key === name ? sortConfig.direction : undefined;
-  };
-
-  const handleDelete = async (code) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await userService.deleteUser(code);
-        const updatedUsers = { ...users };
-        delete updatedUsers[code];
-        setUsers(updatedUsers);
-        alert('User deleted successfully');
-      } catch (err) {
-        alert('Error deleting user. Please try again.');
-        console.error('Error deleting user:', err);
-      }
-    }
   };
 
   if (loading) {
@@ -339,89 +324,19 @@ const UserList = () => {
             <thead>
               <tr>
                 <th className={getClassNamesFor('code')}>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      requestSort('code');
-                    }}
-                    className="sortable-header-link"
-                  >
-                    Code
-                    {sortConfig.key === 'code' && (
-                      <span className="sort-icon">
-                        {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
-                      </span>
-                    )}
-                  </a>
+                  Code
                 </th>
                 <th className={getClassNamesFor('fullName')}>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      requestSort('fullName');
-                    }}
-                    className="sortable-header-link"
-                  >
                     Full Name
-                    {sortConfig.key === 'fullName' && (
-                      <span className="sort-icon">
-                        {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
-                      </span>
-                    )}
-                  </a>
                 </th>
                 <th className={getClassNamesFor('level')}>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      requestSort('level');
-                    }}
-                    className="sortable-header-link"
-                  >
                     Level
-                    {sortConfig.key === 'level' && (
-                      <span className="sort-icon">
-                        {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
-                      </span>
-                    )}
-                  </a>
                 </th>
                 <th className={getClassNamesFor('phoneNumber')}>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      requestSort('phoneNumber');
-                    }}
-                    className="sortable-header-link"
-                  >
                     Phone Number
-                    {sortConfig.key === 'phoneNumber' && (
-                      <span className="sort-icon">
-                        {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
-                      </span>
-                    )}
-                  </a>
                 </th>
                 <th className={getClassNamesFor('church')}>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      requestSort('church');
-                    }}
-                    className="sortable-header-link"
-                  >
                     Church
-                    {sortConfig.key === 'church' && (
-                      <span className="sort-icon">
-                        {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
-                      </span>
-                    )}
-                  </a>
                 </th>
                 <th>Actions</th>
               </tr>

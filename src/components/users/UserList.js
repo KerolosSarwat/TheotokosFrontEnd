@@ -10,7 +10,7 @@ const UserList = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState({});
-  const [sortConfig, setSortConfig] = useState({
+  const [sortConfig] = useState({
     key: 'code',
     direction: 'ascending'
   });
@@ -82,13 +82,13 @@ const UserList = () => {
     }
   }, [searchTerm, users]);
 
-  const requestSort = (key) => {
-    let direction = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
+  // const requestSort = (key) => {
+  //   let direction = 'ascending';
+  //   if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+  //     direction = 'descending';
+  //   }
+  //   setSortConfig({ key, direction });
+  // };
 
   const sortedUsers = useMemo(() => {
     const sortableUsers = Object.values(filteredUsers);
@@ -183,89 +183,33 @@ const UserList = () => {
             <thead>
               <tr>
                 <th className={getClassNamesFor('code')}>
-                  <a
+                  {/* <a
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
                       requestSort('code');
                     }}
                     className="sortable-header-link"
-                  >
+                  > */}
                     Code
-                    {sortConfig.key === 'code' && (
+                    {/* {sortConfig.key === 'code' && (
                       <span className="sort-icon">
                         {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
                       </span>
                     )}
-                  </a>
+                  </a> */}
                 </th>
                 <th className={getClassNamesFor('fullName')}>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      requestSort('fullName');
-                    }}
-                    className="sortable-header-link"
-                  >
                     Full Name
-                    {sortConfig.key === 'fullName' && (
-                      <span className="sort-icon">
-                        {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
-                      </span>
-                    )}
-                  </a>
                 </th>
                 <th className={getClassNamesFor('level')}>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      requestSort('level');
-                    }}
-                    className="sortable-header-link"
-                  >
                     Level
-                    {sortConfig.key === 'level' && (
-                      <span className="sort-icon">
-                        {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
-                      </span>
-                    )}
-                  </a>
                 </th>
                 <th className={getClassNamesFor('phoneNumber')}>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      requestSort('phoneNumber');
-                    }}
-                    className="sortable-header-link"
-                  >
                     Phone Number
-                    {sortConfig.key === 'phoneNumber' && (
-                      <span className="sort-icon">
-                        {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
-                      </span>
-                    )}
-                  </a>
                 </th>
                 <th className={getClassNamesFor('church')}>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      requestSort('church');
-                    }}
-                    className="sortable-header-link"
-                  >
                     Church
-                    {sortConfig.key === 'church' && (
-                      <span className="sort-icon">
-                        {sortConfig.direction === 'ascending' ? ' ↑' : ' ↓'}
-                      </span>
-                    )}
-                  </a>
                 </th>
                 <th>Actions</th>
               </tr>

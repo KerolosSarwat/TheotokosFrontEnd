@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Table, Alert, Form, InputGroup, Button, Dropdown } from 'react-bootstrap';
+import { useState, useEffect } from 'react';
+import { Card, Table, Alert, Form, InputGroup, Button } from 'react-bootstrap';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
@@ -13,7 +13,7 @@ const TaksList = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredDocuments, setFilteredDocuments] = useState([]);
-  const [selectedAgeLevel, setSelectedAgeLevel] = useState(null);
+  const [selectedAgeLevel] = useState(null);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -52,17 +52,6 @@ useEffect(() => {
     setFilteredDocuments(filtered);
   }
 }, [searchTerm, documents]);
-
-  // Get unique age levels from the CURRENTLY FILTERED documents
-  const getUniqueAgeLevels = () => {
-    const ageLevels = new Set();
-    filteredDocuments.forEach(doc => {
-      if (doc.ageLevel) {
-        ageLevels.add(doc.ageLevel);
-      }
-    });
-    return Array.from(ageLevels).sort();
-  };
 
   // Export currently filtered documents (matching search + age level if selected)
   const exportFilteredToWord = async () => {

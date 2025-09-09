@@ -6,7 +6,6 @@ import { userService } from '../../services/services';
 const UserDetails = () => {
   const { code } = useParams();
   const navigate = useNavigate();
-  var totalResult = 0;
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

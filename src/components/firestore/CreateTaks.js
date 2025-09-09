@@ -79,8 +79,6 @@ const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create document');
       }
-
-      const result = await response.json();
       
       setSuccess('Taks document created successfully!');
       setFormData({

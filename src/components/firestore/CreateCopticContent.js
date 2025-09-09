@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Modal, Form, Button, Alert, Row, Col, Badge } from 'react-bootstrap';
+import { useState } from 'react';
+import { Modal, Form, Button, Alert, Row, Col } from 'react-bootstrap';
 
 const CreateCopticContent = ({ show, onHide, onDocumentCreated }) => {
     const [formData, setFormData] = useState({
@@ -95,8 +95,6 @@ const CreateCopticContent = ({ show, onHide, onDocumentCreated }) => {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Failed to create document');
             }
-
-            const result = await response.json();
 
             setSuccess('Coptic content document created successfully!');
             setFormData({

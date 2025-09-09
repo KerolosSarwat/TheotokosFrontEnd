@@ -95,8 +95,6 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create hymn');
       }
-
-      const result = await response.json();
       
       setSuccess('Hymn created successfully!');
       setFormData({
