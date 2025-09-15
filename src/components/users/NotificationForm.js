@@ -10,7 +10,7 @@ const NotificationSender = () => {
 
   const sendNotification = async () => {
     try {
-      await axios.post('http://localhost:5000/api/users/send-notification', {
+      await axios.post('https://theotokosbackend-production.up.railway.app/api/users/send-notification', {
         title,
         body: message
       });

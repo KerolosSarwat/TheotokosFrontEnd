@@ -123,28 +123,28 @@ const UserList = () => {
 
           // Send to server
           await userService.bulkUpdateUsers(transformedData);
-          
+
           setUploadSuccess(true);
           setUploadLoading(false);
-          
+
           // Refresh the user list
           const updatedData = await userService.getPenddingUsers();
           setUsers(updatedData);
           setFilteredUsers(updatedData);
-          
+
           // Close modal after 2 seconds
           setTimeout(() => {
             setShowUploadModal(false);
             setUploadFile(null);
             setUploadSuccess(false);
           }, 2000);
-          
+
         } catch (error) {
           setUploadError('Error processing file: ' + error.message);
           setUploadLoading(false);
         }
       };
-      
+
       reader.readAsArrayBuffer(uploadFile);
     } catch (error) {
       setUploadError('Error reading file: ' + error.message);
@@ -239,17 +239,17 @@ const UserList = () => {
                 <li>Phone Number</li>
                 <li>Church</li>
               </ul>
-              
+
               <Form.Group controlId="formFile" className="mb-3">
                 <Form.Label>Select Excel File</Form.Label>
-                <Form.Control 
-                  type="file" 
-                  accept=".xlsx,.xls" 
+                <Form.Control
+                  type="file"
+                  accept=".xlsx,.xls"
                   onChange={handleFileUpload}
                   disabled={uploadLoading}
                 />
               </Form.Group>
-              
+
               {uploadError && (
                 <div className="alert alert-danger">
                   <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -262,15 +262,15 @@ const UserList = () => {
         <Modal.Footer>
           {!uploadSuccess && (
             <>
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 onClick={() => setShowUploadModal(false)}
                 disabled={uploadLoading}
               >
                 Cancel
               </Button>
-              <Button 
-                variant="primary" 
+              <Button
+                variant="primary"
                 onClick={processBulkUpdate}
                 disabled={uploadLoading || !uploadFile}
               >
@@ -315,7 +315,7 @@ const UserList = () => {
       <span className="badge bg-danger">ثانوى: {sortedUsers.filter(user => user.level === "ثانوى").length}</span>
       <span className="badge bg-warning">جامعة أو خريج: {sortedUsers.filter(user => user.level.includes("خريج")).length}</span>
       <span className="badge bg-info">غير محدد: {sortedUsers.filter(user => user.level === "").length}</span>
-      
+
       {sortedUsers.length === 0 ? (
         <div className="alert alert-info">No users found.</div>
       ) : (
@@ -327,16 +327,16 @@ const UserList = () => {
                   Code
                 </th>
                 <th className={getClassNamesFor('fullName')}>
-                    Full Name
+                  Full Name
                 </th>
                 <th className={getClassNamesFor('level')}>
-                    Level
+                  Level
                 </th>
                 <th className={getClassNamesFor('phoneNumber')}>
-                    Phone Number
+                  Phone Number
                 </th>
                 <th className={getClassNamesFor('church')}>
-                    Church
+                  Church
                 </th>
                 <th>Actions</th>
               </tr>
