@@ -103,12 +103,22 @@ const UserDetails = () => {
                     <td>{user.address || 'N/A'}</td>
                   </tr>
                   <tr>
-                    <th>Attendance:</th>
+                    <th>Active:</th>
                     <td>
-                      {user.attendance ? (
-                        <Badge bg="success">Present</Badge>
+                      {user.active ? (
+                        <Badge bg="success">Active</Badge>
                       ) : (
-                        <Badge bg="danger">Absent</Badge>
+                        <Badge bg="danger">Inactive</Badge>
+                      )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Admin:</th>
+                    <td>
+                      {user.admin ? (
+                        <Badge bg="success">Admin</Badge>
+                      ) : (
+                        <Badge bg="danger">Not Admin</Badge>
                       )}
                     </td>
                   </tr>

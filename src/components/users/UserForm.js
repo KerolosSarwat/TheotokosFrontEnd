@@ -17,7 +17,8 @@ const UserForm = () => {
     church: 'العذراء مريم و الشهيد أبانوب',
     level: 'حضانة',
     address: '',
-    attendance: false,
+    admin: false,
+    active: false,
     degree: {
       firstTerm: {
         agbya: 0,
@@ -270,9 +271,17 @@ function formatDateTime(date) {
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
-                label="Attendance"
-                name="attendance"
-                checked={formData.attendance || false}
+                label="Active"
+                name="active"
+                checked={formData.active || false}
+                onChange={handleChange}
+              />
+
+              <Form.Check
+                type="checkbox"
+                label="Admin"
+                name="admin"
+                checked={formData.admin || false}
                 onChange={handleChange}
               />
             </Form.Group>

@@ -43,6 +43,7 @@ const UserList = () => {
     const dataForExport = sortedUsers.map(user => ({
       Code: user.code || '',
       'Full Name': user.fullName || '',
+      'Address': user.address,
       Level: user.level || 'N/A',
       'Phone Number': user.phoneNumber || 'N/A',
       Church: user.church || 'N/A'
@@ -95,6 +96,7 @@ const UserList = () => {
           const transformedData = jsonData.map(item => ({
             code: item.Code || item.code || '',
             fullName: item['Full Name'] || item.fullName || '',
+            // address: item['Address'] || item.address || '',
             level: item.Level || item.level || '',
             phoneNumber: item['Phone Number'] || item.phoneNumber || '',
             church: item.Church || item.church || ''
@@ -144,7 +146,8 @@ const UserList = () => {
           (user.fullName && String(user.fullName).toLowerCase().includes(lowerSearchTerm)) ||
           (user.code && String(user.code).toLowerCase().includes(lowerSearchTerm)) ||
           (user.phoneNumber && String(user.phoneNumber).includes(searchTerm)) ||
-          (user.level && String(user.level).toLowerCase().includes(lowerSearchTerm));
+          (user.level && String(user.level).toLowerCase().includes(lowerSearchTerm)) || 
+          (user.church && String(user.church).toLowerCase().includes(lowerSearchTerm));
 
         if (matchesSearch) {
           filtered[key] = user;
