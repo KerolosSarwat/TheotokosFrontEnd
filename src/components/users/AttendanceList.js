@@ -1,5 +1,5 @@
 // components/AttendanceReport/AttendanceReport.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { userService } from '../../services/services';
 import { Table, Card, Form, InputGroup, Button, Modal, Badge } from 'react-bootstrap';
 import * as XLSX from 'xlsx';
@@ -22,7 +22,7 @@ const AttendanceReport = () => {
     'all',
     'حضانة',
     'أولى ابتدائى',
-    'ثانية ابتدائى', 
+    'ثانية ابتدائى',
     'ثالثة ابتدائى',
     'رابعة ابتدائى',
     'خامسة ابتدائى',
@@ -32,11 +32,7 @@ const AttendanceReport = () => {
     'جامعيين و خريجين',
   ];
 
-  useEffect(() => {
-    fetchAttendanceReport();
-  }, [selectedLevel]);
-
-  const fetchAttendanceReport = async () => {
+  const fetchAttendanceReport = useCallback(async () => {
     try {
       setLoading(true);
       const data = await userService.getUsersAttendance(selectedLevel);
@@ -48,7 +44,11 @@ const AttendanceReport = () => {
       setLoading(false);
       console.error('Error fetching attendance report:', err);
     }
-  };
+  }, [selectedLevel]);
+
+  useEffect(() => {
+    fetchAttendanceReport();
+  }, [fetchAttendanceReport]);
 
   // Filter students by search term
   const filteredStudents = useMemo(() => {
@@ -100,8 +100,8 @@ const AttendanceReport = () => {
       'المستوى': student.level || 'N/A',
       'الكنيسة': student.church || 'N/A',
       'عدد مرات الحضور': student.attendance?.length || 0,
-      'آخر حضور': student.attendance?.length > 0 
-        ? formatExcelDate(student.attendance[0].dateTime) 
+      'آخر حضور': student.attendance?.length > 0
+        ? formatExcelDate(student.attendance[0].dateTime)
         : 'لا يوجد'
     }));
 
@@ -177,9 +177,9 @@ const AttendanceReport = () => {
       <div className="alert alert-danger mt-3 text-center">
         <i className="bi bi-exclamation-triangle-fill me-2"></i>
         {error}
-        <Button 
-          variant="outline-danger" 
-          size="sm" 
+        <Button
+          variant="outline-danger"
+          size="sm"
           className="ms-2"
           onClick={fetchAttendanceReport}
         >
@@ -242,8 +242,8 @@ const AttendanceReport = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 {searchTerm && (
-                  <Button 
-                    variant="outline-secondary" 
+                  <Button
+                    variant="outline-secondary"
                     onClick={() => setSearchTerm('')}
                   >
                     <i className="bi bi-x-lg"></i>
@@ -252,7 +252,7 @@ const AttendanceReport = () => {
               </InputGroup>
             </div>
           </div>
-          
+
           {/* Statistics */}
           <div className="row mt-3 text-center">
             <div className="col-md-3">
@@ -300,7 +300,7 @@ const AttendanceReport = () => {
           <Table striped bordered hover>
             <thead className="table-dark">
               <tr>
-                <th 
+                <th
                   className={getClassNamesFor('code')}
                   style={{ cursor: 'pointer', width: '120px' }}
                   onClick={() => requestSort('code')}
@@ -312,7 +312,7 @@ const AttendanceReport = () => {
                     </span>
                   )}
                 </th>
-                <th 
+                <th
                   className={getClassNamesFor('fullName')}
                   style={{ cursor: 'pointer', width: '200px' }}
                   onClick={() => requestSort('fullName')}
@@ -324,7 +324,7 @@ const AttendanceReport = () => {
                     </span>
                   )}
                 </th>
-                <th 
+                <th
                   className={getClassNamesFor('level')}
                   style={{ cursor: 'pointer', width: '150px' }}
                   onClick={() => requestSort('level')}
@@ -336,7 +336,7 @@ const AttendanceReport = () => {
                     </span>
                   )}
                 </th>
-                <th 
+                <th
                   className={getClassNamesFor('church')}
                   style={{ cursor: 'pointer', width: '200px' }}
                   onClick={() => requestSort('church')}
@@ -357,7 +357,7 @@ const AttendanceReport = () => {
               {sortedStudents.map((student) => {
                 const stats = getAttendanceStats(student);
                 const recentAttendance = student.attendance?.slice(0, 3) || [];
-                
+
                 return (
                   <tr key={student.code}>
                     <td className="fw-bold text-primary">{student.code}</td>
@@ -384,8 +384,8 @@ const AttendanceReport = () => {
                       <div className="text-center">
                         <div className="h5 mb-0">{stats.total}</div>
                         <div className="small">
-                          <span className="text-success">{stats.present}</span> / 
-                          <span className="text-warning"> {stats.late}</span> / 
+                          <span className="text-success">{stats.present}</span> /
+                          <span className="text-warning"> {stats.late}</span> /
                           <span className="text-danger"> {stats.absent}</span>
                         </div>
                       </div>
@@ -410,8 +410,8 @@ const AttendanceReport = () => {
       )}
 
       {/* Student Details Modal */}
-      <Modal 
-        show={showDetailsModal} 
+      <Modal
+        show={showDetailsModal}
         onHide={() => setShowDetailsModal(false)}
         size="lg"
         centered
@@ -435,7 +435,7 @@ const AttendanceReport = () => {
                   <strong>الكنيسة:</strong> {selectedStudent.church}
                 </div>
                 <div className="col-md-6 mt-2">
-                  <strong>إجمالي الحضور:</strong> 
+                  <strong>إجمالي الحضور:</strong>
                   <Badge bg="primary" className="ms-2">
                     {selectedStudent.attendance?.length || 0}
                   </Badge>
