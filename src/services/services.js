@@ -88,7 +88,17 @@ export const userService = {
       console.error(`Error updating users`, error);
       throw error;
     }
-  }
+  },
+  
+  getUsersAttendance: async (level) => {
+    try {
+      const response = await axios.get(USER_API.ATTENDANCE(level));
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  },
 };
 
 

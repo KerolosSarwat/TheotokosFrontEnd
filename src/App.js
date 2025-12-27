@@ -1,9 +1,10 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import Dashboard from './components/dashboard/Dashboard';
 import Sidebar from './components/common/Sidebar';
 import Navbar from './components/common/Navbar';
 import UserList from './components/users/UserList';
+import Attendance from './components/users/AttendanceList';
 import PenddingUserList from './components/users/PenddingUserList';
 import UserForm from './components/users/UserForm';
 import UserDetails from './components/users/UserDetails';
@@ -16,21 +17,49 @@ import CreateAgbyaDocument from './components/firestore/CreateAgbyaDocument'
 import CreateTaks from './components/firestore/CreateTaks'
 import CreateHymns from './components/firestore/CreateHymns'
 import CreateCopticContent from './components/firestore/CreateCopticContent'
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import Profile from './components/profile/Profile';
+
 import './App.css';
 
-function App() {
+const MainLayout = () => {
   return (
-    <div className="App">
+    <>
       <Navbar />
       <div className="container-fluid">
         <div className="row">
-          <div className="col-md-2 d-none d-md-block bg-light sidebar">
+          <div className="col-md-2 d-none d-md-block sidebar">
             <Sidebar />
           </div>
           <main className="col-md-10 ms-sm-auto px-md-4">
-            <Routes>
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <div className="App">
+          <Routes>
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/users" element={<UserList />} />
+              <Route path="/attendance" element={<Attendance />} />
               <Route path="/penddingusers" element={<PenddingUserList />} />
               <Route path="/users/new" element={<UserForm />} />
               <Route path="/users/edit/:code" element={<UserForm />} />
@@ -44,11 +73,11 @@ function App() {
               <Route path="/firestore/createTaks" element={<CreateTaks />} />
               <Route path="/firestore/createHymns" element={<CreateHymns />} />
               <Route path="/firestore/CreateCopticContent" element={<CreateCopticContent />} />
-            </Routes>
-          </main>
+            </Route>
+          </Routes>
         </div>
-      </div>
-    </div>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
