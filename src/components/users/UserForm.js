@@ -21,7 +21,6 @@ const UserForm = () => {
     address: '',
     admin: false,
     active: false,
-    admin: false,
     degree: {
       firstTerm: {
         agbya: 0,

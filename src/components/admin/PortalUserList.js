@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Table, Button, Card, Modal, Form, Badge, Tab, Tabs } from 'react-bootstrap';
+import { Table, Button, Card, Modal, Form, Badge } from 'react-bootstrap';
 import { userService } from '../../services/services';
-import { useAuth } from '../../context/AuthContext';
 
 const PortalUserList = () => {
-    const { t } = useTranslation();
-    const { user: currentUser } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     // Permissions Modal
     const [showModal, setShowModal] = useState(false);
@@ -30,8 +25,6 @@ const PortalUserList = () => {
             setUsers(data);
             setLoading(false);
         } catch (err) {
-            setError('Failed to fetch portal users');
-            setLoading(false);
             console.error(err);
         }
     };
@@ -50,11 +43,11 @@ const PortalUserList = () => {
     };
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const { name, value, checked } = e.target;
 
         if (name.includes('.')) {
             // Handle nested permission change
-            const [root, module, action] = name.split('.'); // e.g. permissions.users.edit
+            const [, module, action] = name.split('.'); // e.g. permissions.users.edit
             setFormData(prev => ({
                 ...prev,
                 permissions: {
