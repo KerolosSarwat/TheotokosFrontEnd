@@ -29,14 +29,14 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const result = await login(email, password, rememberMe);
+            const result = await login(email, password);
 
             if (result.success) {
                 // Redirect to the page they tried to visit or dashboard
                 const from = location.state?.from?.pathname || '/';
                 navigate(from, { replace: true });
             } else {
-                setError(result.error || 'Login failed. Please try again.');
+                setError(result.error);
             }
         } catch (err) {
             setError('An unexpected error occurred. Please try again.');

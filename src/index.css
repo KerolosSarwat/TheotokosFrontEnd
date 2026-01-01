@@ -7,12 +7,32 @@
   --card-bg-light: #ffffff;
   --card-bg-dark: #212529;
   --transition-speed: 0.3s;
+
+  /* Level Colors */
+  --level-kindergarten: #4dabf7;
+  /* Blue */
+  --level-primary: #51cf66;
+  /* Green */
+  --level-secondary: #ff922b;
+  /* Orange */
+  --level-highschool: #ff6b6b;
+  /* Red */
+  --level-university: #845ef7;
+  /* Purple */
+  --level-graduate: #fcc419;
+  /* Yellow */
 }
 
-[data-bs-theme="dark"] {
-  --glass-bg: rgba(33, 37, 41, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+/* ... existing dark theme code ... */
+
+body[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+body[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
 }
 
 body {
@@ -51,7 +71,26 @@ code {
   background: #555;
 }
 
-/* Glassmorphism Utilities */
+/* Modern UI Helpers */
+.bg-gradient-primary-text {
+  background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-light-soft {
+  background-color: rgba(var(--bs-light-rgb), 0.5);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(10px);

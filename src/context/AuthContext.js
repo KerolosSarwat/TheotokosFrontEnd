@@ -1,4 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth } from '../firebase';
+import { userService } from '../services/services';
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    updateProfile as firebaseUpdateProfile,
+    sendPasswordResetEmail
+} from 'firebase/auth';
 
 const AuthContext = createContext();
 
@@ -15,121 +25,163 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    // Check for existing auth on mount
+    // Listen for Firebase auth state changes
     useEffect(() => {
-        const checkAuth = () => {
-            try {
-                const storedUser = localStorage.getItem('user');
-                const authToken = localStorage.getItem('authToken');
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            if (firebaseUser) {
+                // User is signed in
+                const userData = {
+                    id: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                    photoURL: firebaseUser.photoURL,
+                    emailVerified: firebaseUser.emailVerified
+                };
 
-                if (storedUser && authToken) {
-                    setUser(JSON.parse(storedUser));
-                    setIsAuthenticated(true);
+                // Set initial auth state
+                setUser(userData);
+                setIsAuthenticated(true);
+
+                // Sync with backend portalUsers DB and fetch permissions
+                try {
+                    const syncUser = async () => {
+                        try {
+                            const portalUser = await userService.syncPortalUser({
+                                uid: firebaseUser.uid,
+                                email: firebaseUser.email,
+                                displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                                photoURL: firebaseUser.photoURL
+                            });
+
+                            if (portalUser && portalUser.user) {
+                                setUser(prev => ({
+                                    ...prev,
+                                    ...portalUser.user,
+                                    id: firebaseUser.uid
+                                }));
+                            }
+                        } catch (e) {
+                            console.error("Error syncing user", e);
+                        }
+                    };
+                    syncUser();
+                } catch (e) {
+                    console.error("Error syncing user", e);
                 }
-            } catch (error) {
-                console.error('Error checking auth:', error);
-                localStorage.removeItem('user');
-                localStorage.removeItem('authToken');
-            } finally {
-                setLoading(false);
-            }
-        };
 
-        checkAuth();
+                // Store token in localStorage if needed for backend requests
+                firebaseUser.getIdToken().then(token => {
+                    localStorage.setItem('authToken', token);
+                });
+            } else {
+                // User is signed out
+                setUser(null);
+                setIsAuthenticated(false);
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user'); // Clean up old storage if present
+            }
+            setLoading(false);
+        });
+
+        // Cleanup subscription on unmount
+        return () => unsubscribe();
     }, []);
 
-    const login = async (email, password, rememberMe = false) => {
+    const login = async (email, password) => {
         try {
-            // TODO: Replace with actual API call to your backend
-            // For now, simulate login with a delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Simulate successful login
-            const userData = {
-                id: '1',
-                email: email,
-                name: email.split('@')[0],
-            };
-
-            const token = 'mock-jwt-token-' + Date.now();
-
-            // Store in localStorage or sessionStorage based on rememberMe
-            const storage = rememberMe ? localStorage : sessionStorage;
-            storage.setItem('user', JSON.stringify(userData));
-            storage.setItem('authToken', token);
-
-            // Also set in localStorage for consistency (can be modified based on requirements)
-            localStorage.setItem('user', JSON.stringify(userData));
-            localStorage.setItem('authToken', token);
-
-            setUser(userData);
-            setIsAuthenticated(true);
-
-            return { success: true };
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            return { success: true, user: userCredential.user };
         } catch (error) {
-            console.error('Login error:', error);
-            return { success: false, error: error.message || 'Login failed' };
+            console.error('Login error:', error.code, error.message);
+            // Return user-friendly error messages
+            let errorMessage = 'Login failed. Please check your credentials.';
+            if (error.code === 'auth/user-not-found') errorMessage = 'No user found with this email.';
+            if (error.code === 'auth/wrong-password') errorMessage = 'Incorrect password.';
+            if (error.code === 'auth/invalid-email') errorMessage = 'Invalid email address.';
+            if (error.code === 'auth/too-many-requests') errorMessage = 'Too many failed attempts. Please try again later.';
+
+            return { success: false, error: errorMessage };
         }
     };
 
     const register = async (name, email, password) => {
         try {
-            // TODO: Replace with actual API call to your backend
-            // For now, simulate registration with a delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-            // Simulate successful registration
-            const userData = {
-                id: '1',
-                email: email,
-                name: name,
-            };
+            // Update the profile with the display name
+            await firebaseUpdateProfile(userCredential.user, {
+                displayName: name
+            });
 
-            const token = 'mock-jwt-token-' + Date.now();
+            // Force update local user state to include the new display name immediately
+            setUser(prev => ({ ...prev, name: name }));
 
-            localStorage.setItem('user', JSON.stringify(userData));
-            localStorage.setItem('authToken', token);
-
-            setUser(userData);
-            setIsAuthenticated(true);
-
-            return { success: true };
+            return { success: true, user: userCredential.user };
         } catch (error) {
-            console.error('Registration error:', error);
-            return { success: false, error: error.message || 'Registration failed' };
+            console.error('Registration error:', error.code, error.message);
+            let errorMessage = 'Registration failed.';
+            if (error.code === 'auth/email-already-in-use') errorMessage = 'Email is already registered.';
+            if (error.code === 'auth/weak-password') errorMessage = 'Password should be at least 6 characters.';
+            if (error.code === 'auth/invalid-email') errorMessage = 'Invalid email address.';
+
+            return { success: false, error: errorMessage };
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('authToken');
-        sessionStorage.removeItem('user');
-        sessionStorage.removeItem('authToken');
-
-        setUser(null);
-        setIsAuthenticated(false);
+    const logout = async () => {
+        try {
+            await signOut(auth);
+            return { success: true };
+        } catch (error) {
+            console.error('Logout error:', error);
+            return { success: false, error: error.message };
+        }
     };
 
-    const updateProfile = async (name, email) => {
+    const resetPassword = async (email) => {
         try {
-            // TODO: Replace with actual API call to your backend
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Update user data
-            const updatedUser = {
-                ...user,
-                name: name,
-                email: email,
-            };
-
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            setUser(updatedUser);
-
+            await sendPasswordResetEmail(auth, email);
             return { success: true };
+        } catch (error) {
+            console.error('Password reset error:', error);
+            let errorMessage = 'Failed to send reset email.';
+            if (error.code === 'auth/user-not-found') errorMessage = 'No account found with this email.';
+            if (error.code === 'auth/invalid-email') errorMessage = 'Invalid email address.';
+            return { success: false, error: errorMessage };
+        }
+    };
+
+    const updateProfile = async (name) => {
+        try {
+            if (auth.currentUser) {
+                await firebaseUpdateProfile(auth.currentUser, {
+                    displayName: name
+                });
+
+                // Update local state
+                setUser(prev => ({ ...prev, name: name }));
+                return { success: true };
+            } else {
+                return { success: false, error: 'No user logged in' };
+            }
         } catch (error) {
             console.error('Update profile error:', error);
             return { success: false, error: error.message || 'Failed to update profile' };
         }
+    };
+
+    // Check if user has specific permission
+    const hasPermission = (module, action) => {
+        if (!user) return false;
+        // Admins have full access
+        if (user.admin) return true;
+
+        // Check granular permissions
+        if (user.permissions && user.permissions[module] && user.permissions[module][action]) {
+            return true;
+        }
+
+        return false;
     };
 
     const value = {
@@ -139,8 +191,10 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        resetPassword,
         updateProfile,
+        hasPermission,
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };

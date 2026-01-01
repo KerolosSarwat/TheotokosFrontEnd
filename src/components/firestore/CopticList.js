@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Alert, Form, InputGroup, Button } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
 import CreateCopticContent from './CreateCopticContent'
 
 const CopticList = () => {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredDocuments, setFilteredDocuments] = useState([]);
+
+  useEffect(() => {
+    document.title = `${t('firestore.copticTitle')} | Firebase Portal`;
+  }, [t]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -21,14 +27,14 @@ const CopticList = () => {
         setFilteredDocuments(data);
         setLoading(false);
       } catch (err) {
-        setError('Error fetching Coptic documents. Please try again later.');
+        setError(t('common.noResults'));
         setLoading(false);
         console.error('Error fetching documents:', err);
       }
     };
 
     fetchDocuments();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -56,7 +62,7 @@ const CopticList = () => {
   // Function to render table based on document structure
   const renderDocumentTable = () => {
     if (filteredDocuments.length === 0) {
-      return <Alert variant="info">No documents found in the Coptic collection.</Alert>;
+      return <Alert variant="info">{t('common.noResults')}</Alert>;
     }
 
     // Get all unique keys from all documents
@@ -110,11 +116,11 @@ const CopticList = () => {
   return (
     <div className="coptic-list">
       <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 className="h2">Coptic Collection</h1>
+        <h1 className="h2">{t('firestore.copticTitle')}</h1>
         <Button
           variant="primary"
           onClick={() => setShowModal(true)}>
-          New Lesson
+          {t('common.add')}
         </Button>
       </div>
       <Card className="mb-4">
@@ -123,7 +129,7 @@ const CopticList = () => {
             <InputGroup className="mb-3">
               <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
               <Form.Control
-                placeholder="Search documents..."
+                placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -145,7 +151,7 @@ const CopticList = () => {
         onHide={() => setShowModal(false)}
         onDocumentCreated={() => {
           // Add refresh logic here if needed
-          console.log('New Taks created');
+          console.log('New Coptic content created');
         }}
       />
     </div>

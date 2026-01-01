@@ -331,3 +331,118 @@
   cursor: pointer;
   user-select: none;
 }
+
+/* Responsive Table / Card View for Mobile */
+@media screen and (max-width: 768px) {
+
+  /* Force table to not behave like a table */
+  .table-responsive table,
+  .table-responsive thead,
+  .table-responsive tbody,
+  .table-responsive th,
+  .table-responsive td,
+  .table-responsive tr {
+    display: block;
+  }
+
+  /* Hide table headers (but not display: none;, for accessibility) */
+  .table-responsive thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .table-responsive tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    background-color: var(--bs-card-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .table-responsive td {
+    /* Behave  like a "row" */
+    border: none;
+    border-bottom: 1px solid var(--bs-border-color);
+    position: relative;
+    padding-right: 40% !important;
+    /* Make space for label */
+    padding-left: 1rem !important;
+    text-align: left;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .table-responsive td:last-child {
+    border-bottom: none;
+    justify-content: center;
+    padding-right: 1rem !important;
+  }
+
+  .table-responsive td:before {
+    /* Now like a table header */
+    position: absolute;
+    /* Top/left values mimic padding */
+    top: 0;
+    right: 1rem;
+    bottom: 0;
+    width: 35%;
+    padding-right: 10px;
+    white-space: nowrap;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    content: attr(data-label);
+    color: var(--bs-secondary-color);
+    text-align: right;
+  }
+
+  /* Adjust button sizes for touch */
+  .btn,
+  .btn-sm {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Adjust pagination for mobile */
+  .pagination-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+/* Hover State Enhancement */
+.table-hover tbody tr:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+  transform: scale(1.002);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  z-index: 1;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Logical Properties helper for RTL */
+.ms-auto {
+  margin-inline-start: auto;
+  margin-left: unset !important;
+}
+
+.me-auto {
+  margin-inline-end: auto;
+  margin-right: unset !important;
+}
+
+.ps-3 {
+  padding-inline-start: 1rem;
+  padding-left: unset !important;
+}
+
+.pe-3 {
+  padding-inline-end: 1rem;
+  padding-right: unset !important;
+}

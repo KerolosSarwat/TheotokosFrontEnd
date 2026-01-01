@@ -1,0 +1,160 @@
+{
+    "nav": {
+        "dashboard": "لوحة التحكم",
+        "users": "المستخدمين",
+        "attendance": "الحضور",
+        "firestore": "مجموعات Firestore",
+        "agbya": "الأجبية",
+        "taks": "الطقس",
+        "coptic": "القبطي",
+        "hymns": "الألحان",
+        "addUser": "إضافة مستخدم",
+        "profile": "ملفي الشخصي",
+        "logout": "تسجيل الخروج"
+    },
+    "common": {
+        "search": "بحث...",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "cancel": "إلغاء",
+        "save": "حفظ",
+        "actions": "إجراءات",
+        "close": "إغلاق",
+        "address": "العنوان",
+        "noResults": "لم يتم العثور على نتائج.",
+        "back": "رجوع",
+        "update": "تحديث",
+        "create": "إضافة",
+        "gender": "النوع",
+        "male": "ذكر",
+        "female": "أنثى",
+        "birthdate": "تاريخ الميلاد",
+        "active": "نشط",
+        "admin": "مسؤول",
+        "inactive": "غير نشط",
+        "notAdmin": "ليس مسؤول",
+        "refresh": "تحديث",
+        "processing": "جاري المعالجة...",
+        "success": "تم بنجاح",
+        "error": "خطأ",
+        "add": "إضافة جديد"
+    },
+    "subjects": {
+        "agbya": "الأجبية",
+        "coptic": "اللغة القبطية",
+        "hymns": "الألحان",
+        "taks": "الطقس",
+        "attendance": "الحضور",
+        "result": "المجموع"
+    },
+    "terms": {
+        "first": "الترم الأول",
+        "second": "الترم الثاني",
+        "third": "الترم الثالث",
+        "degreeInfo": "بيان الدرجات"
+    },
+    "dashboard": {
+        "title": "نظرة عامة على لوحة التحكم",
+        "recentActivity": "المستخدمين المضافين حديثاً",
+        "totalUsers": "إجمالي المستخدمين",
+        "pendingRequests": "الطلبات المعلقة",
+        "totalAttendance": "إجمالي الحضور",
+        "topLevel": "المرحلة الأكثر عدداً",
+        "quickActions": "إجراءات سريعة",
+        "allUsers": "كل المستخدمين",
+        "pendingUsers": "المستخدمين المعلقين",
+        "sendNotification": "إرسال تنبيه",
+        "contentManagement": "إدارة المحتوى",
+        "noRecentActivity": "لا يوجد نشاط حديث",
+        "viewAllUsers": "عرض كل المستخدمين"
+    },
+    "users": {
+        "title": "المستخدمين",
+        "fullName": "الاسم بالكامل",
+        "code": "الكود",
+        "level": "المرتبة/المرحلة",
+        "phone": "رقم الهاتف",
+        "church": "الكنيسة",
+        "quickView": "عرض سريع",
+        "fullProfile": "الملف الكامل",
+        "exportExcel": "تصدير إلى Excel",
+        "bulkUpdate": "تحديث جماعي",
+        "searchPlaceholder": "ابحث بالاسم، الكود، رقم الهاتف، أو المرحلة...",
+        "details": "تفاصيل الطالب",
+        "editFullProfile": "تعديل الملف بالكامل",
+        "bulkUpdateTitle": "تحديث المستخدمين جماعياً",
+        "bulkUpdateDesc": "قم برفع ملف Excel يحتوي على بيانات المستخدمين. يجب أن يحتوي الملف على الأعمدة التالية:",
+        "selectFile": "اختر ملف Excel",
+        "uploadAndUpdate": "رفع وتحديث",
+        "successMsg": "تم التحديث الجماعي بنجاح!",
+        "new": "مستخدم جديد",
+        "edit": "تعديل البيانات",
+        "confirmDelete": "هل أنت متأكد من حذف هذا المستخدم؟",
+        "pending": "المستخدمين المعلقين",
+        "noUsers": "لا يوجد مستخدمين.",
+        "approve": "الموافقة على المستخدم",
+        "confirmApprove": "هل أنت متأكد من الموافقة على المستخدم {{name}}؟",
+        "approveSuccess": "تمت الموافقة على المستخدم بنجاح!"
+    },
+    "attendance": {
+        "title": "تقرير الحضور والانصراف",
+        "refreshData": "تحديث البيانات",
+        "studyLevel": "المستوى الدراسي",
+        "allLevels": "جميع المستويات",
+        "searchPlaceholder": "ابحث باسم الطالب، الكود، أو الكنيسة...",
+        "stats": {
+            "totalStudents": "إجمالي الطلاب",
+            "withAttendance": "طلاب لديهم حضور",
+            "totalRecords": "إجمالي سجلات الحضور",
+            "selectedLevel": "المستوى المحدد"
+        },
+        "table": {
+            "recentAttendance": "آخر 3 مرات حضور",
+            "totalStats": "الإجمالي (حاضر/متأخر/غائب)",
+            "details": "التفاصيل",
+            "noLog": "لا توجد سجلات حضور لهذا الطالب",
+            "fullLog": "سجل الحضور الكامل"
+        },
+        "status": {
+            "present": "حاضر",
+            "late": "متأخر",
+            "absent": "غائب",
+            "atChurch": "تم الحضور"
+        }
+    },
+    "notifications": {
+        "title": "إرسال تنبيه عام",
+        "formTitle": "عنوان التنبيه",
+        "message": "رسالة التنبيه",
+        "sendAll": "إرسال لكل المستخدمين",
+        "success": "تم إرسال التنبيه بنجاح!",
+        "failed": "فشل إرسال التنبيه",
+        "placeholderTitle": "أدخل العنوان",
+        "placeholderMsg": "أدخل الرسالة"
+    },
+    "firestore": {
+        "agbyaTitle": "مجموعة الأجبية",
+        "taksTitle": "مجموعة الطقس",
+        "copticTitle": "مجموعة القبطي",
+        "hymnsTitle": "مجموعة الألحان",
+        "addDocument": "إضافة مستند جديد",
+        "editDocument": "تعديل المستند",
+        "name": "الاسم",
+        "content": "المحتوى",
+        "order": "الترتيب",
+        "type": "النوع"
+    },
+    "permissions": {
+        "title": "صلاحيات المستخدم",
+        "modules": {
+            "users": "إدارة المستخدمين",
+            "attendance": "الحضور",
+            "content": "إدارة المحتوى"
+        },
+        "actions": {
+            "view": "عرض",
+            "edit": "تعديل",
+            "delete": "حذف"
+        }
+    }
+}

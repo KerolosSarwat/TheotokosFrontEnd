@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Table, Badge, Button } from 'react-bootstrap';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { userService } from '../../services/services';
 
 const UserDetails = () => {
+  const { t } = useTranslation();
   const { code } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      document.title = `${user.fullName} | Firebase Portal`;
+    } else {
+      document.title = `${t('users.details')} | Firebase Portal`;
+    }
+  }, [t, user]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,7 +38,7 @@ const UserDetails = () => {
   }, [code]);
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm(t('users.confirmDelete'))) {
       try {
         await userService.deleteUser(code);
         alert('User deleted successfully');
@@ -51,13 +61,13 @@ const UserDetails = () => {
   return (
     <div className="user-details">
       <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 className="h2">User Details</h1>
+        <h1 className="h2">{t('users.details')}</h1>
         <div>
           <Link to={`/users/edit/${code}`} className="btn btn-warning me-2">
-            <i className="bi bi-pencil me-1"></i> Edit
+            <i className="bi bi-pencil me-1"></i> {t('common.edit')}
           </Link>
           <Button variant="danger" onClick={handleDelete}>
-            <i className="bi bi-trash me-1"></i> Delete
+            <i className="bi bi-trash me-1"></i> {t('common.delete')}
           </Button>
         </div>
       </div>
@@ -65,7 +75,7 @@ const UserDetails = () => {
       <Card className="user-details-card mb-4">
         <Card.Header className="bg-primary text-white">
           <h3>{user.fullName}</h3>
-          <div>Code: {user.code}</div>
+          <div>{t('users.code')}: {user.code}</div>
         </Card.Header>
         <Card.Body>
           <Row>
@@ -73,19 +83,19 @@ const UserDetails = () => {
               <Table className="table-borderless">
                 <tbody>
                   <tr>
-                    <th>Gender:</th>
-                    <td>{user.gender || 'N/A'}</td>
+                    <th>{t('common.gender')}:</th>
+                    <td>{user.gender === 'Male' ? t('common.male') : user.gender === 'Female' ? t('common.female') : 'N/A'}</td>
                   </tr>
                   <tr>
-                    <th>Birthdate:</th>
+                    <th>{t('common.birthdate')}:</th>
                     <td>{user.birthdate || 'N/A'}</td>
                   </tr>
                   <tr>
-                    <th>Phone Number:</th>
+                    <th>{t('users.phone')}:</th>
                     <td>{user.phoneNumber || 'N/A'}</td>
                   </tr>
                   <tr>
-                    <th>Level:</th>
+                    <th>{t('users.level')}:</th>
                     <td>{user.level || 'N/A'}</td>
                   </tr>
                 </tbody>
@@ -95,30 +105,30 @@ const UserDetails = () => {
               <Table className="table-borderless">
                 <tbody>
                   <tr>
-                    <th>Church:</th>
+                    <th>{t('users.church')}:</th>
                     <td>{user.church || 'N/A'}</td>
                   </tr>
                   <tr>
-                    <th>Address:</th>
+                    <th>{t('common.address')}:</th>
                     <td>{user.address || 'N/A'}</td>
                   </tr>
                   <tr>
-                    <th>Active:</th>
+                    <th>{t('common.active')}:</th>
                     <td>
                       {user.active ? (
-                        <Badge bg="success">Active</Badge>
+                        <Badge bg="success">{t('common.active')}</Badge>
                       ) : (
-                        <Badge bg="danger">Inactive</Badge>
+                        <Badge bg="danger">{t('common.inactive')}</Badge>
                       )}
                     </td>
                   </tr>
                   <tr>
-                    <th>Admin:</th>
+                    <th>{t('common.admin')}:</th>
                     <td>
                       {user.admin ? (
-                        <Badge bg="success">Admin</Badge>
+                        <Badge bg="success">{t('common.admin')}</Badge>
                       ) : (
-                        <Badge bg="danger">Not Admin</Badge>
+                        <Badge bg="danger">{t('common.notAdmin')}</Badge>
                       )}
                     </td>
                   </tr>
@@ -129,20 +139,20 @@ const UserDetails = () => {
         </Card.Body>
       </Card>
 
-      <h3 className="mb-3">Degree Information</h3>
-      
+      <h3 className="mb-3">{t('terms.degreeInfo')}</h3>
+
       <Card className="mb-4">
-        <Card.Header className="bg-info text-white">الترم الأول</Card.Header>
+        <Card.Header className="bg-info text-white">{t('terms.first')}</Card.Header>
         <Card.Body>
           <Table striped bordered>
             <thead>
               <tr>
-                <th>الأجبية</th>
-                <th>لغة قبطية</th>
-                <th>ألحان</th>
-                <th>طقس</th>
-                <th>الحضور</th>
-                <th>المجموع</th>
+                <th>{t('subjects.agbya')}</th>
+                <th>{t('subjects.coptic')}</th>
+                <th>{t('subjects.hymns')}</th>
+                <th>{t('subjects.taks')}</th>
+                <th>{t('subjects.attendance')}</th>
+                <th>{t('subjects.result')}</th>
               </tr>
             </thead>
             <tbody>
@@ -160,17 +170,17 @@ const UserDetails = () => {
       </Card>
 
       <Card className="mb-4">
-        <Card.Header className="bg-warning">الترم الثانى</Card.Header>
+        <Card.Header className="bg-warning">{t('terms.second')}</Card.Header>
         <Card.Body>
           <Table striped bordered>
             <thead>
               <tr>
-                <th>الأجبية</th>
-                <th>لغة قبطية</th>
-                <th>ألحان</th>
-                <th>طقس</th>
-                <th>الحضور</th>
-                <th>المجموع</th>
+                <th>{t('subjects.agbya')}</th>
+                <th>{t('subjects.coptic')}</th>
+                <th>{t('subjects.hymns')}</th>
+                <th>{t('subjects.taks')}</th>
+                <th>{t('subjects.attendance')}</th>
+                <th>{t('subjects.result')}</th>
               </tr>
             </thead>
             <tbody>
@@ -188,17 +198,17 @@ const UserDetails = () => {
       </Card>
 
       <Card className="mb-4">
-        <Card.Header className="bg-success text-white">الترم الثالث</Card.Header>
+        <Card.Header className="bg-success text-white">{t('terms.third')}</Card.Header>
         <Card.Body>
           <Table striped bordered>
             <thead>
               <tr>
-                <th>أجبية</th>
-                <th>لغة قبطية</th>
-                <th>ألحان</th>
-                <th>طقس</th>
-                <th>الحضور</th>
-                <th>المجموع</th>
+                <th>{t('subjects.agbya')}</th>
+                <th>{t('subjects.coptic')}</th>
+                <th>{t('subjects.hymns')}</th>
+                <th>{t('subjects.taks')}</th>
+                <th>{t('subjects.attendance')}</th>
+                <th>{t('subjects.result')}</th>
               </tr>
             </thead>
             <tbody>
@@ -218,10 +228,10 @@ const UserDetails = () => {
 
       <div className="d-flex justify-content-between mb-5">
         <Button variant="secondary" onClick={() => navigate('/users')}>
-          Back to Users
+          {t('common.back')}
         </Button>
         <Link to={`/users/edit/${code}`} className="btn btn-primary">
-          Edit User
+          {t('users.edit')}
         </Link>
       </div>
     </div>
@@ -229,3 +239,4 @@ const UserDetails = () => {
 };
 
 export default UserDetails;
+

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { userService } from '../../services/services';
 
 const UserForm = () => {
+  const { t } = useTranslation();
   const { code } = useParams();
   const navigate = useNavigate();
   const isEditMode = !!code;
-  
+
   const [formData, setFormData] = useState({
     code: isEditMode ? "" : formatDateTime(new Date()).toString(),
     fullName: '',
@@ -19,6 +21,7 @@ const UserForm = () => {
     address: '',
     admin: false,
     active: false,
+    admin: false,
     degree: {
       firstTerm: {
         agbya: 0,
@@ -44,10 +47,14 @@ const UserForm = () => {
       }
     }
   });
-  
+
   const [loading, setLoading] = useState(isEditMode);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    document.title = `${isEditMode ? t('users.edit') : t('users.new')} | Firebase Portal`;
+  }, [t, isEditMode]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -71,19 +78,19 @@ const UserForm = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     if (name.includes('.')) {
       // Handle nested properties (e.g., degree.firstTerm.agbya)
       const parts = name.split('.');
       setFormData(prevData => {
         const newData = { ...prevData };
         let current = newData;
-        
+
         // Navigate to the nested property
         for (let i = 0; i < parts.length - 1; i++) {
           current = current[parts[i]];
         }
-        
+
         // Set the value
         current[parts[parts.length - 1]] = type === 'number' ? Number(value) : value;
         return newData;
@@ -97,21 +104,21 @@ const UserForm = () => {
     }
   };
 
-function formatDateTime(date) {
+  function formatDateTime(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    
+
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
-}
+  }
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);
-    
+
     try {
       if (isEditMode) {
         // Update existing user
@@ -137,7 +144,7 @@ function formatDateTime(date) {
   return (
     <div className="user-form">
       <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 className="h2">{isEditMode ? 'تعديل البيانات' : 'مستخدم جديد'}</h1>
+        <h1 className="h2">{isEditMode ? t('users.edit') : t('users.new')}</h1>
       </div>
 
       {error && <Alert variant="danger">{error}</Alert>}
@@ -146,11 +153,10 @@ function formatDateTime(date) {
       <Card>
         <Card.Body>
           <Form onSubmit={handleSubmit}>
-            {/* Form content remains the same */}
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>الكود *</Form.Label>
+                  <Form.Label>{t('users.code')} *</Form.Label>
                   <Form.Control
                     type="text"
                     name="code"
@@ -163,7 +169,7 @@ function formatDateTime(date) {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>الأسم بالكامل *</Form.Label>
+                  <Form.Label>{t('users.fullName')} *</Form.Label>
                   <Form.Control
                     type="text"
                     name="fullName"
@@ -178,20 +184,20 @@ function formatDateTime(date) {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>النوع</Form.Label>
+                  <Form.Label>{t('common.gender')}</Form.Label>
                   <Form.Select
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
                   >
-                    <option value="Male">ذكر</option>
-                    <option value="Female">أنثى</option>
+                    <option value="Male">{t('common.male')}</option>
+                    <option value="Female">{t('common.female')}</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>تاريخ الميلاد</Form.Label>
+                  <Form.Label>{t('common.birthdate')}</Form.Label>
                   <Form.Control
                     type="date"
                     name="birthdate"
@@ -206,7 +212,7 @@ function formatDateTime(date) {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>الموبايل</Form.Label>
+                  <Form.Label>{t('users.phone')}</Form.Label>
                   <Form.Control
                     type="text"
                     name="phoneNumber"
@@ -217,10 +223,10 @@ function formatDateTime(date) {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>الكنيسة</Form.Label>
+                  <Form.Label>{t('users.church')}</Form.Label>
                   <Form.Select
                     name="church"
-                    value={formData.level || "أختر المرحلة"}
+                    value={formData.church}
                     onChange={handleChange}>
                     <option value="العذراء مريم و الشهيد أبانوب">العذراء مريم و الشهيد أبانوب</option>
                     <option value="الأنبا كاراس السائح">الأنبا كاراس السائح</option>
@@ -236,10 +242,10 @@ function formatDateTime(date) {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>المرحلة</Form.Label>
+                  <Form.Label>{t('users.level')}</Form.Label>
                   <Form.Select
                     name="level"
-                    value={formData.level || "أختر المرحلة"}
+                    value={formData.level}
                     onChange={handleChange}>
                     <option value="حضانة">حضانة</option>
                     <option value="أولى ابتدائى">أولى ابتدائى</option>
@@ -257,7 +263,7 @@ function formatDateTime(date) {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>العنوان</Form.Label>
+                  <Form.Label>{t('common.address')}</Form.Label>
                   <Form.Control
                     type="text"
                     name="address"
@@ -271,7 +277,7 @@ function formatDateTime(date) {
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
-                label="Active"
+                label={t('common.active')}
                 name="active"
                 checked={formData.active || false}
                 onChange={handleChange}
@@ -279,22 +285,23 @@ function formatDateTime(date) {
 
               <Form.Check
                 type="checkbox"
-                label="Admin"
+                label={t('common.admin')}
                 name="admin"
                 checked={formData.admin || false}
                 onChange={handleChange}
               />
             </Form.Group>
-           
-            <h4 className="mt-4">بيان الدرجات</h4>
-            
+
+
+            <h4 className="mt-4">{t('terms.degreeInfo')}</h4>
+
             <Card className="mb-3">
-              <Card.Header>الترم الأول</Card.Header>
+              <Card.Header>{t('terms.first')}</Card.Header>
               <Card.Body>
                 <Row>
                   <Col md={3}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الأجبية</Form.Label>
+                      <Form.Label>{t('subjects.agbya')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.firstTerm.agbya"
@@ -305,7 +312,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={3}>
                     <Form.Group className="mb-3">
-                      <Form.Label>اللغة القبطية</Form.Label>
+                      <Form.Label>{t('subjects.coptic')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.firstTerm.coptic"
@@ -316,7 +323,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={3}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الألحان</Form.Label>
+                      <Form.Label>{t('subjects.hymns')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.firstTerm.hymns"
@@ -327,7 +334,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={3}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الطقس</Form.Label>
+                      <Form.Label>{t('subjects.taks')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.firstTerm.taks"
@@ -341,12 +348,12 @@ function formatDateTime(date) {
             </Card>
 
             <Card className="mb-3">
-              <Card.Header>الترم الثانى</Card.Header>
+              <Card.Header>{t('terms.second')}</Card.Header>
               <Card.Body>
                 <Row>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الأجبية</Form.Label>
+                      <Form.Label>{t('subjects.agbya')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.secondTerm.agbya"
@@ -357,7 +364,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>اللغة القبطية</Form.Label>
+                      <Form.Label>{t('subjects.coptic')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.secondTerm.coptic"
@@ -368,7 +375,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الألحان</Form.Label>
+                      <Form.Label>{t('subjects.hymns')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.secondTerm.hymns"
@@ -379,7 +386,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الطقس</Form.Label>
+                      <Form.Label>{t('subjects.taks')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.secondTerm.taks"
@@ -390,7 +397,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الحضور</Form.Label>
+                      <Form.Label>{t('subjects.attendance')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.secondTerm.attencance"
@@ -401,7 +408,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>المجموع</Form.Label>
+                      <Form.Label>{t('subjects.result')}</Form.Label>
 
                       <Form.Control
                         type="number"
@@ -417,12 +424,12 @@ function formatDateTime(date) {
             </Card>
 
             <Card className="mb-3">
-              <Card.Header>الترم الثالث</Card.Header>
+              <Card.Header>{t('terms.third')}</Card.Header>
               <Card.Body>
                 <Row>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الأجبية</Form.Label>
+                      <Form.Label>{t('subjects.agbya')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.thirdTerm.agbya"
@@ -433,7 +440,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>اللغة القبطية</Form.Label>
+                      <Form.Label>{t('subjects.coptic')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.thirdTerm.coptic"
@@ -444,7 +451,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الألحان</Form.Label>
+                      <Form.Label>{t('subjects.hymns')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.thirdTerm.hymns"
@@ -455,7 +462,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الطقس</Form.Label>
+                      <Form.Label>{t('subjects.taks')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.thirdTerm.taks"
@@ -466,7 +473,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>الحضور</Form.Label>
+                      <Form.Label>{t('subjects.attendance')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.thirdTerm.attencance"
@@ -477,7 +484,7 @@ function formatDateTime(date) {
                   </Col>
                   <Col md={2}>
                     <Form.Group className="mb-3">
-                      <Form.Label>المجموع</Form.Label>
+                      <Form.Label>{t('subjects.result')}</Form.Label>
                       <Form.Control
                         type="number"
                         name="degree.thirdTerm.result"
@@ -493,10 +500,10 @@ function formatDateTime(date) {
 
             <div className="d-flex justify-content-between mt-4">
               <Button variant="secondary" onClick={() => navigate('/users')}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button variant="primary" type="submit">
-                {isEditMode ? 'Update User' : 'Create User'}
+                {isEditMode ? t('common.update') : t('common.create')}
               </Button>
             </div>
           </Form>
@@ -507,3 +514,4 @@ function formatDateTime(date) {
 };
 
 export default UserForm;
+

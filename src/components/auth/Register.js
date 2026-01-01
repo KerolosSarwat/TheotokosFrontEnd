@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button, FloatingLabel, Row, Col, Alert } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { userService } from '../../services/services';
 import AuthLayout from './AuthLayout';
 
 const Register = () => {
@@ -60,10 +61,19 @@ const Register = () => {
             const result = await register(formData.name, formData.email, formData.password);
 
             if (result.success) {
+                // Explicitly sync to create portalUsers node
+                await userService.syncPortalUser({
+                    uid: result.user.uid,
+                    email: result.user.email,
+                    displayName: formData.name,
+                    photoURL: result.user.photoURL
+                });
+
                 // Redirect to dashboard
+                // navigate('/', { replace: true }); // AuthContext listener usually handles this via PrivateRoute or parent, but explicit redirect is safe too.
                 navigate('/', { replace: true });
             } else {
-                setError(result.error || 'Registration failed. Please try again.');
+                setError(result.error);
             }
         } catch (err) {
             setError('An unexpected error occurred. Please try again.');

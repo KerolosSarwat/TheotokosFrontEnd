@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Alert, Form, InputGroup, Button } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
 import CreateHymns from './CreateHymns';
+
 const HymnsList = () => {
+  const { t } = useTranslation();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredDocuments, setFilteredDocuments] = useState([]);
+
+  useEffect(() => {
+    document.title = `${t('firestore.hymnsTitle')} | Firebase Portal`;
+  }, [t]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -20,14 +27,14 @@ const HymnsList = () => {
         setFilteredDocuments(data);
         setLoading(false);
       } catch (err) {
-        setError('Error fetching Hymns documents. Please try again later.');
+        setError(t('common.noResults'));
         setLoading(false);
         console.error('Error fetching documents:', err);
       }
     };
 
     fetchDocuments();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -35,8 +42,8 @@ const HymnsList = () => {
     } else {
       const filtered = documents.filter(doc => {
         // Search through all properties of the document
-        return Object.values(doc).some(value => 
-          value && typeof value === 'string' && 
+        return Object.values(doc).some(value =>
+          value && typeof value === 'string' &&
           value.toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
@@ -55,7 +62,7 @@ const HymnsList = () => {
   // Function to render table based on document structure
   const renderDocumentTable = () => {
     if (filteredDocuments.length === 0) {
-      return <Alert variant="info">No documents found in the Hymns collection.</Alert>;
+      return <Alert variant="info">{t('common.noResults')}</Alert>;
     }
 
     // Get all unique keys from all documents
@@ -109,12 +116,12 @@ const HymnsList = () => {
   return (
     <div className="hymns-list">
       <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 className="h2">Hymns Collection</h1>
-        <Button 
-        variant="primary" 
-        onClick={() => setShowCreateModal(true)}>
-        New Hymn
-      </Button>
+        <h1 className="h2">{t('firestore.hymnsTitle')}</h1>
+        <Button
+          variant="primary"
+          onClick={() => setShowCreateModal(true)}>
+          {t('common.add')}
+        </Button>
       </div>
 
       <Card className="mb-4">
@@ -123,7 +130,7 @@ const HymnsList = () => {
             <InputGroup className="mb-3">
               <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
               <Form.Control
-                placeholder="Search documents..."
+                placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />

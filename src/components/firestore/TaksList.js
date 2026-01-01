@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Table, Alert, Form, InputGroup, Button } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
@@ -7,6 +8,7 @@ import { saveAs } from 'file-saver';
 import CreateTaks from './CreateTaks';
 
 const TaksList = () => {
+  const { t } = useTranslation();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +16,10 @@ const TaksList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredDocuments, setFilteredDocuments] = useState([]);
   const [selectedAgeLevel] = useState(null);
+
+  useEffect(() => {
+    document.title = `${t('firestore.taksTitle')} | Firebase Portal`;
+  }, [t]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -24,34 +30,34 @@ const TaksList = () => {
         setFilteredDocuments(data);
         setLoading(false);
       } catch (err) {
-        setError('Error fetching Taks documents. Please try again later.');
+        setError(t('common.noResults'));
         setLoading(false);
         console.error('Error fetching documents:', err);
       }
     };
 
     fetchDocuments();
-  }, []);
+  }, [t]);
 
-useEffect(() => {
-  if (searchTerm.trim() === '') {
-    setFilteredDocuments(documents);
-  } else {
-    const filtered = documents.filter(doc => {
-      return Object.values(doc).some(value => {
-        if (value === null || value === undefined) return false;
-        
-        // Handle arrays/objects by stringifying them
-        if (typeof value === 'object') {
-          return JSON.stringify(value).includes(searchTerm);
-        }
-        // Handle all other types by converting to string
-        return String(value).includes(searchTerm);
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredDocuments(documents);
+    } else {
+      const filtered = documents.filter(doc => {
+        return Object.values(doc).some(value => {
+          if (value === null || value === undefined) return false;
+
+          // Handle arrays/objects by stringifying them
+          if (typeof value === 'object') {
+            return JSON.stringify(value).includes(searchTerm);
+          }
+          // Handle all other types by converting to string
+          return String(value).includes(searchTerm);
+        });
       });
-    });
-    setFilteredDocuments(filtered);
-  }
-}, [searchTerm, documents]);
+      setFilteredDocuments(filtered);
+    }
+  }, [searchTerm, documents]);
 
   // Export currently filtered documents (matching search + age level if selected)
   const exportFilteredToWord = async () => {
@@ -62,7 +68,7 @@ useEffect(() => {
     }
 
     if (docsToExport.length === 0) {
-      alert('No documents to export with the current filters');
+      alert(t('common.noResults'));
       return;
     }
 
@@ -74,7 +80,7 @@ useEffect(() => {
           new Paragraph({
             children: [
               new TextRun({
-                text: selectedAgeLevel 
+                text: selectedAgeLevel
                   ? `Taks Documents for Age Level: ${selectedAgeLevel}`
                   : 'All Filtered Taks Documents',
                 bold: true,
@@ -130,7 +136,7 @@ useEffect(() => {
 
   const renderDocumentTable = () => {
     if (filteredDocuments.length === 0) {
-      return <Alert variant="info">No documents found matching your criteria.</Alert>;
+      return <Alert variant="info">{t('common.noResults')}</Alert>;
     }
 
     const allKeys = new Set();
@@ -182,12 +188,12 @@ useEffect(() => {
   return (
     <div className="taks-list">
       <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 className="h2">Taks Collection</h1>
-        <Button 
-        variant="primary" 
-        onClick={() => setShowCreateModal(true)}>
-        New Lesson
-      </Button>
+        <h1 className="h2">{t('firestore.taksTitle')}</h1>
+        <Button
+          variant="primary"
+          onClick={() => setShowCreateModal(true)}>
+          {t('common.add')}
+        </Button>
       </div>
 
       <Card className="mb-4">
@@ -196,7 +202,7 @@ useEffect(() => {
             <InputGroup className="mb-3">
               <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
               <Form.Control
-                placeholder="Search documents..."
+                placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -209,29 +215,8 @@ useEffect(() => {
           </Form>
 
           <div className="d-flex align-items-center mt-3">
-            {/* <Dropdown className="me-2">
-              <Dropdown.Toggle variant="primary" id="dropdown-age-level">
-                {selectedAgeLevel ? `Age Level: ${selectedAgeLevel}` : "All Age Levels"}
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item onClick={() => setSelectedAgeLevel(null)}>
-                  All Age Levels
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                {getUniqueAgeLevels().map(level => (
-                  <Dropdown.Item 
-                    key={level} 
-                    onClick={() => setSelectedAgeLevel(level)}
-                    active={selectedAgeLevel === level}
-                  >
-                    {level}
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown> */}
-
-            <Button 
-              variant="success" 
+            <Button
+              variant="success"
               onClick={exportFilteredToWord}
               disabled={filteredDocuments.length === 0}
             >

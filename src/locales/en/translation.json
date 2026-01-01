@@ -1,0 +1,160 @@
+{
+    "nav": {
+        "dashboard": "Dashboard",
+        "users": "Users",
+        "attendance": "Attendance",
+        "firestore": "Firestore Collections",
+        "agbya": "Agbya",
+        "taks": "Taks",
+        "coptic": "Coptic",
+        "hymns": "Hymns",
+        "addUser": "Add User",
+        "profile": "My Profile",
+        "logout": "Logout"
+    },
+    "common": {
+        "search": "Search...",
+        "edit": "Edit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "save": "Save",
+        "actions": "Actions",
+        "close": "Close",
+        "address": "Address",
+        "noResults": "No results found.",
+        "back": "Back",
+        "update": "Update",
+        "create": "Create",
+        "gender": "Gender",
+        "male": "Male",
+        "female": "Female",
+        "birthdate": "Birthdate",
+        "active": "Active",
+        "admin": "Admin",
+        "inactive": "Inactive",
+        "notAdmin": "Not Admin",
+        "refresh": "Refresh",
+        "processing": "Processing...",
+        "success": "Success",
+        "error": "Error",
+        "add": "Add New"
+    },
+    "subjects": {
+        "agbya": "Agbya",
+        "coptic": "Coptic Language",
+        "hymns": "Hymns",
+        "taks": "Taks",
+        "attendance": "Attendance",
+        "result": "Total"
+    },
+    "terms": {
+        "first": "First Term",
+        "second": "Second Term",
+        "third": "Third Term",
+        "degreeInfo": "Degree Information"
+    },
+    "dashboard": {
+        "title": "Dashboard Overview",
+        "recentActivity": "Recently Added Users",
+        "totalUsers": "Total Users",
+        "pendingRequests": "Pending Requests",
+        "totalAttendance": "Total Attendance",
+        "topLevel": "Top Level",
+        "quickActions": "Quick Actions",
+        "allUsers": "All Users",
+        "pendingUsers": "Pending Users",
+        "sendNotification": "Send Notification",
+        "contentManagement": "Content Management",
+        "noRecentActivity": "No recent activity",
+        "viewAllUsers": "View All Users"
+    },
+    "users": {
+        "title": "Users",
+        "fullName": "Full Name",
+        "code": "Code",
+        "level": "Level",
+        "phone": "Phone Number",
+        "church": "Church",
+        "quickView": "Quick View",
+        "fullProfile": "Full Profile",
+        "exportExcel": "Export to Excel",
+        "bulkUpdate": "Bulk Update",
+        "searchPlaceholder": "Search by name, code, phone number, or level...",
+        "details": "Student Details",
+        "editFullProfile": "Edit Full Profile",
+        "bulkUpdateTitle": "Bulk Update Users",
+        "bulkUpdateDesc": "Upload an Excel file with user data. The file should have the following columns:",
+        "selectFile": "Select Excel File",
+        "uploadAndUpdate": "Upload and Update",
+        "successMsg": "Bulk update completed successfully!",
+        "new": "New User",
+        "edit": "Edit Details",
+        "confirmDelete": "Are you sure you want to delete this user?",
+        "pending": "Pending Users",
+        "noUsers": "No users found.",
+        "approve": "Approve User",
+        "confirmApprove": "Are you sure you want to approve user {{name}}?",
+        "approveSuccess": "User approved successfully!"
+    },
+    "attendance": {
+        "title": "Attendance Report",
+        "refreshData": "Refresh Data",
+        "studyLevel": "Study Level",
+        "allLevels": "All Levels",
+        "searchPlaceholder": "Search by student name, code, or church...",
+        "stats": {
+            "totalStudents": "Total Students",
+            "withAttendance": "Students with Attendance",
+            "totalRecords": "Total Attendance Records",
+            "selectedLevel": "Selected Level"
+        },
+        "table": {
+            "recentAttendance": "Last 3 Attendances",
+            "totalStats": "Total (P/L/A)",
+            "details": "Details",
+            "noLog": "No attendance records for this student",
+            "fullLog": "Full Attendance Log"
+        },
+        "status": {
+            "present": "Present",
+            "late": "Late",
+            "absent": "Absent",
+            "atChurch": "At Church"
+        }
+    },
+    "notifications": {
+        "title": "Send Broadcast Notification",
+        "formTitle": "Notification Title",
+        "message": "Notification Message",
+        "sendAll": "Send to All Users",
+        "success": "Notification sent successfully!",
+        "failed": "Failed to send notification",
+        "placeholderTitle": "Enter title",
+        "placeholderMsg": "Enter your message"
+    },
+    "firestore": {
+        "agbyaTitle": "Agbya Collection",
+        "taksTitle": "Taks Collection",
+        "copticTitle": "Coptic Collection",
+        "hymnsTitle": "Hymns Collection",
+        "addDocument": "Add New Document",
+        "editDocument": "Edit Document",
+        "name": "Name",
+        "content": "Content",
+        "order": "Order",
+        "type": "Type"
+    },
+    "permissions": {
+        "title": "User Permissions",
+        "modules": {
+            "users": "Users Management",
+            "attendance": "Attendance",
+            "content": "Content Management"
+        },
+        "actions": {
+            "view": "View",
+            "edit": "Edit",
+            "delete": "Delete"
+        }
+    }
+}
