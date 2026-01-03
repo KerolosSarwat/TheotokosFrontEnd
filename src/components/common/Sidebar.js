@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Nav } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
   const location = useLocation();
