@@ -38,6 +38,16 @@ const Navbar = () => {
         </BootstrapNavbar.Brand>
 
         <div className="d-flex align-items-center ms-auto order-lg-last gap-2">
+          {/* Global Search Bar */}
+          <div className="d-none d-md-flex align-items-center mx-3 position-relative" style={{ minWidth: '300px' }}>
+            <i className="bi bi-search position-absolute ms-3 text-muted"></i>
+            <input
+              type="text"
+              className="form-control rounded-pill ps-5 bg-light border-0"
+              placeholder={t('common.search', 'Search...')}
+            />
+          </div>
+
           {/* Language Switcher */}
           <Dropdown align="end">
             <Dropdown.Toggle variant="outline-secondary" size="sm" className="rounded-pill px-3 d-flex align-items-center gap-2">

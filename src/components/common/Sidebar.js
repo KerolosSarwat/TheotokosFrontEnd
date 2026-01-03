@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 const Sidebar = () => {
   const location = useLocation();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  // const { user } = useAuth(); // Removed unused
 
   return (
     <div className="sidebar-sticky pt-3 pb-5">
@@ -45,20 +45,7 @@ const Sidebar = () => {
           </Nav.Link>
         </Nav.Item>
 
-        {/* Admin Only Link */}
-        {(user?.role === 'admin' || user?.role === 'super_admin' || user?.admin) && (
-          <Nav.Item>
-            <Nav.Link
-              as={Link}
-              to="/admin/portal-users"
-              active={location.pathname.startsWith('/admin/portal-users')}
-              className="rounded-3 d-flex align-items-center py-2 px-3"
-            >
-              <i className="bi bi-shield-lock me-2"></i>
-              Staff
-            </Nav.Link>
-          </Nav.Item>
-        )}
+
 
         <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-2 text-muted text-uppercase fw-bold small">
           <span>{t('nav.firestore')}</span>

@@ -247,21 +247,21 @@ const UserList = () => {
         <h1 className="h2">{t('users.title')}</h1>
         <div className="d-flex gap-2">
           <Button
-            variant="primary"
+            variant="outline-primary"
             onClick={() => setShowUploadModal(true)}
-            className="d-flex align-items-center"
+            className="d-flex align-items-center rounded-pill shadow-sm"
           >
             <i className="bi bi-upload me-1"></i> {t('users.bulkUpdate')}
           </Button>
           <Button
-            variant="success"
+            variant="outline-success"
             onClick={exportToExcel}
-            className="d-flex align-items-center"
+            className="d-flex align-items-center rounded-pill shadow-sm"
           >
             <i className="bi bi-file-earmark-excel me-1"></i> {t('users.exportExcel')}
           </Button>
           {hasPermission('users', 'edit') && (
-            <Link to="/users/new" className="btn btn-primary">
+            <Link to="/users/new" className="btn btn-primary rounded-pill shadow-sm d-flex align-items-center">
               <i className="bi bi-person-plus-fill me-1"></i> {t('nav.addUser')}
             </Link>
           )}
