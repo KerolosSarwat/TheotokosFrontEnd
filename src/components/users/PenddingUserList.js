@@ -354,12 +354,12 @@ const UserList = () => {
         </Card.Body>
       </Card>
 
-      <span className="badge bg-primary">حضانة: {sortedUsers.filter(user => user.level === "حضانة").length}</span>
+      {/* <span className="badge bg-primary">حضانة: {sortedUsers.filter(user => user.level === "حضانة").length}</span>
       <span className="badge bg-secondary">ابتدائى: {sortedUsers.filter(user => user.level.includes("ابتدائى")).length}</span>
       <span className="badge bg-success">اعدادى: {sortedUsers.filter(user => user.level === "اعدادى").length}</span>
       <span className="badge bg-danger">ثانوى: {sortedUsers.filter(user => user.level === "ثانوى").length}</span>
       <span className="badge bg-warning">جامعة أو خريج: {sortedUsers.filter(user => user.level.includes("خريج")).length}</span>
-      <span className="badge bg-info">غير محدد: {sortedUsers.filter(user => user.level === "").length}</span>
+      <span className="badge bg-info">غير محدد: {sortedUsers.filter(user => user.level === "").length}</span> */}
 
       {sortedUsers.length === 0 ? (
         <div className="alert alert-info">{t('users.noUsers')}</div>

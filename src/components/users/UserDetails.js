@@ -139,92 +139,12 @@ const UserDetails = () => {
         </Card.Body>
       </Card>
 
-      <h3 className="mb-3">{t('terms.degreeInfo')}</h3>
-
-      <Card className="mb-4">
-        <Card.Header className="bg-info text-white">{t('terms.first')}</Card.Header>
-        <Card.Body>
-          <Table striped bordered>
-            <thead>
-              <tr>
-                <th>{t('subjects.agbya')}</th>
-                <th>{t('subjects.coptic')}</th>
-                <th>{t('subjects.hymns')}</th>
-                <th>{t('subjects.taks')}</th>
-                <th>{t('subjects.attendance')}</th>
-                <th>{t('subjects.result')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{user.degree.firstTerm.agbya}</td>
-                <td>{user.degree.firstTerm.coptic}</td>
-                <td>{user.degree.firstTerm.hymns}</td>
-                <td>{user.degree.firstTerm.taks}</td>
-                <td>{user.degree.firstTerm.attencance}</td>
-                <td>{(user.degree.firstTerm.agbya + user.degree.firstTerm.coptic + user.degree.firstTerm.hymns + user.degree.firstTerm.taks + user.degree.firstTerm.attencance)}</td>
-              </tr>
-            </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
-
-      <Card className="mb-4">
-        <Card.Header className="bg-warning">{t('terms.second')}</Card.Header>
-        <Card.Body>
-          <Table striped bordered>
-            <thead>
-              <tr>
-                <th>{t('subjects.agbya')}</th>
-                <th>{t('subjects.coptic')}</th>
-                <th>{t('subjects.hymns')}</th>
-                <th>{t('subjects.taks')}</th>
-                <th>{t('subjects.attendance')}</th>
-                <th>{t('subjects.result')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{user.degree.secondTerm.agbya}</td>
-                <td>{user.degree.secondTerm.coptic}</td>
-                <td>{user.degree.secondTerm.hymns}</td>
-                <td>{user.degree.secondTerm.taks}</td>
-                <td>{user.degree.secondTerm.attencance}</td>
-                <td>{(user.degree.secondTerm.agbya + user.degree.secondTerm.coptic + user.degree.secondTerm.hymns + user.degree.secondTerm.taks + user.degree.secondTerm.attencance)}</td>
-              </tr>
-            </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
-
-      <Card className="mb-4">
-        <Card.Header className="bg-success text-white">{t('terms.third')}</Card.Header>
-        <Card.Body>
-          <Table striped bordered>
-            <thead>
-              <tr>
-                <th>{t('subjects.agbya')}</th>
-                <th>{t('subjects.coptic')}</th>
-                <th>{t('subjects.hymns')}</th>
-                <th>{t('subjects.taks')}</th>
-                <th>{t('subjects.attendance')}</th>
-                <th>{t('subjects.result')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{user.degree.thirdTerm.agbya}</td>
-                <td>{user.degree.thirdTerm.coptic}</td>
-                <td>{user.degree.thirdTerm.hymns}</td>
-                <td>{user.degree.thirdTerm.taks}</td>
-                <td>{user.degree.thirdTerm.attencance}</td>
-                <td>{(user.degree.thirdTerm.agbya + user.degree.thirdTerm.coptic + user.degree.thirdTerm.hymns + user.degree.thirdTerm.taks + user.degree.thirdTerm.attencance)}</td>
-
-              </tr>
-            </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
+      <div className="d-flex justify-content-between mb-4 mt-4">
+        <h3 className="mb-0">{t('terms.degreeInfo')}</h3>
+        <Link to={`/users/${code}/degrees`} className="btn btn-outline-primary">
+          <i className="bi bi-mortarboard me-1"></i> {t('Manage Degrees')}
+        </Link>
+      </div>
 
       <div className="d-flex justify-content-between mb-5">
         <Button variant="secondary" onClick={() => navigate('/users')}>

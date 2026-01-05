@@ -70,11 +70,6 @@ const Navbar = () => {
 
         <BootstrapNavbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto me-3 align-items-center gap-2">
-            <Nav.Link as={Link} to="/users/new" className="btn btn-primary text-white rounded-pill px-4 py-2 d-inline-flex align-items-center shadow-sm hover-lift">
-              <i className="bi bi-person-plus-fill me-2"></i>
-              {t('nav.addUser')}
-            </Nav.Link>
-
             {/* Admin Only Link for Staff Management */}
             {(user?.role === 'admin' || user?.role === 'super_admin' || user?.admin) && (
               <Nav.Link as={Link} to="/admin/portal-users" className="btn btn-outline-secondary rounded-pill px-3 py-2 d-inline-flex align-items-center ms-2">

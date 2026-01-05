@@ -2,10 +2,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { Nav } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 
+import { useAuth } from '../../context/AuthContext'; // Import useAuth
+
 const Sidebar = () => {
   const location = useLocation();
   const { t } = useTranslation();
-  // const { user } = useAuth(); // Removed unused
+  const { hasPermission } = useAuth(); // Get hasPermission
 
   return (
     <div className="sidebar-sticky pt-3 pb-5">
@@ -43,6 +45,19 @@ const Sidebar = () => {
             {t('nav.attendance')}
           </Nav.Link>
         </Nav.Item>
+        {hasPermission('degrees', 'edit') && (
+          <Nav.Item>
+            <Nav.Link
+              as={Link}
+              to="/degrees"
+              active={location.pathname === '/degrees'}
+              className="rounded-3 d-flex align-items-center py-2 px-3"
+            >
+              <i className="bi bi-file-earmark-spreadsheet me-2"></i>
+              {t('Bulk Degrees')}
+            </Nav.Link>
+          </Nav.Item>
+        )}
 
 
 

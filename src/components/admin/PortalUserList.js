@@ -36,7 +36,8 @@ const PortalUserList = () => {
             permissions: user.permissions || {
                 users: { view: false, edit: false, delete: false },
                 attendance: { view: false, edit: false, delete: false },
-                content: { view: false, edit: false, delete: false }
+                content: { view: false, edit: false, delete: false },
+                degrees: { view: false, edit: false, delete: false }
             }
         });
         setShowModal(true);
@@ -166,7 +167,7 @@ const PortalUserList = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {['users', 'attendance', 'content'].map(module => (
+                                {['users', 'attendance', 'content', 'degrees'].map(module => (
                                     <tr key={module}>
                                         <td className="text-capitalize">{module}</td>
                                         {['view', 'edit', 'delete'].map(action => (

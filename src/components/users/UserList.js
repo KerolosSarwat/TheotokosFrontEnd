@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/services';
-import { Table, Button, Card, Form, InputGroup, Modal, Badge } from 'react-bootstrap';
+import { Table, Button, Card, Form, InputGroup, Modal, Badge, Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx'; // Add this import
+
+import StudentDegreesModal from './StudentDegreesModal'; // Import the new modal
 
 const UserList = () => {
   const { t } = useTranslation();
@@ -13,7 +15,24 @@ const UserList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLevels, setSelectedLevels] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState({});
+
+  // Dynamic levels from data
+  const ALL_LEVELS = useMemo(() => {
+    const levels = new Set([
+      "حضانة",
+      "أولى ابتدائى", "ثانية ابتدائى", "ثالثة ابتدائى",
+      "رابعة ابتدائى", "خامسة ابتدائى", "سادسة ابتدائى",
+      "اعدادى", "ثانوى ", "جامعة أو خريج"
+    ]);
+    if (users) {
+      Object.values(users).forEach(u => {
+        if (u.level) levels.add(u.level);
+      });
+    }
+    return Array.from(levels).sort();
+  }, [users]);
   const [sortConfig] = useState({
     key: 'code',
     direction: 'ascending'
@@ -23,6 +42,9 @@ const UserList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
   const [selectedUser, setSelectedUser] = useState(null); // For Quick View Modal
+
+  const [showDegreeModal, setShowDegreeModal] = useState(false);
+  const [selectedDegreeUser, setSelectedDegreeUser] = useState(null);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
@@ -151,30 +173,27 @@ const UserList = () => {
     }
   };
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredUsers(users);
-    } else {
-      const filtered = {};
+    let result = Object.values(users);
+
+    // 1. Text Search
+    if (searchTerm.trim() !== '') {
       const lowerSearchTerm = searchTerm.toLowerCase();
-
-      Object.keys(users).forEach(key => {
-        const user = users[key];
-
-        const matchesSearch =
-          (user.fullName && String(user.fullName).toLowerCase().includes(lowerSearchTerm)) ||
-          (user.code && String(user.code).toLowerCase().includes(lowerSearchTerm)) ||
-          (user.phoneNumber && String(user.phoneNumber).includes(searchTerm)) ||
-          (user.level && String(user.level).toLowerCase().includes(lowerSearchTerm)) ||
-          (user.church && String(user.church).toLowerCase().includes(lowerSearchTerm));
-
-        if (matchesSearch) {
-          filtered[key] = user;
-        }
-      });
-
-      setFilteredUsers(filtered);
+      result = result.filter(user =>
+        (user.fullName && String(user.fullName).toLowerCase().includes(lowerSearchTerm)) ||
+        (user.code && String(user.code).toLowerCase().includes(lowerSearchTerm)) ||
+        (user.phoneNumber && String(user.phoneNumber).includes(searchTerm)) ||
+        (user.level && String(user.level).toLowerCase().includes(lowerSearchTerm)) ||
+        (user.church && String(user.church).toLowerCase().includes(lowerSearchTerm))
+      );
     }
-  }, [searchTerm, users]);
+
+    // 2. Level Filter
+    if (selectedLevels.length > 0) {
+      result = result.filter(user => user.level && selectedLevels.includes(user.level));
+    }
+
+    setFilteredUsers(result);
+  }, [searchTerm, users, selectedLevels]);
 
   // const requestSort = (key) => {
   //   let direction = 'ascending';
@@ -246,13 +265,15 @@ const UserList = () => {
       <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 className="h2">{t('users.title')}</h1>
         <div className="d-flex gap-2">
-          <Button
-            variant="outline-primary"
-            onClick={() => setShowUploadModal(true)}
-            className="d-flex align-items-center rounded-pill shadow-sm"
-          >
-            <i className="bi bi-upload me-1"></i> {t('users.bulkUpdate')}
-          </Button>
+          {hasPermission('degrees', 'edit') && (
+            <Button
+              variant="outline-primary"
+              onClick={() => setShowUploadModal(true)}
+              className="d-flex align-items-center rounded-pill shadow-sm"
+            >
+              <i className="bi bi-upload me-1"></i> {t('users.bulkUpdate')}
+            </Button>
+          )}
           <Button
             variant="outline-success"
             onClick={exportToExcel}
@@ -340,19 +361,61 @@ const UserList = () => {
       <Card className="mb-4">
         <Card.Body>
           <Form>
-            <InputGroup className="mb-3">
-              <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
-              <Form.Control
-                placeholder={t('users.searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
-                  <i className="bi bi-x-lg"></i>
-                </Button>
-              )}
-            </InputGroup>
+            <div className="row g-3">
+              <div className="col-md-8">
+                <InputGroup>
+                  <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
+                  <Form.Control
+                    placeholder={t('users.searchPlaceholder')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  {searchTerm && (
+                    <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
+                      <i className="bi bi-x-lg"></i>
+                    </Button>
+                  )}
+                </InputGroup>
+              </div>
+              <div className="col-md-4">
+                <Dropdown autoClose="outside" className="w-100">
+                  <Dropdown.Toggle variant="outline-secondary" id="levelDropdown" className="w-100 text-start d-flex justify-content-between align-items-center">
+                    <span>{selectedLevels.length > 0 ? `${selectedLevels.length} selected` : t('Filter by Level')}</span>
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu className="w-100 p-2" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    <div className="px-2 pb-2">
+                      <Form.Check
+                        type="checkbox"
+                        id="selectAllLevels"
+                        label="Select All"
+                        checked={selectedLevels.length === ALL_LEVELS.length && ALL_LEVELS.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedLevels([...ALL_LEVELS]);
+                          else setSelectedLevels([]);
+                        }}
+                      />
+                    </div>
+                    <Dropdown.Divider />
+                    {ALL_LEVELS.map(level => (
+                      <div key={level} className="px-2 py-1">
+                        <Form.Check
+                          type="checkbox"
+                          id={`check-${level}`}
+                          label={level}
+                          value={level}
+                          checked={selectedLevels.includes(level)}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedLevels([...selectedLevels, level]);
+                            else setSelectedLevels(selectedLevels.filter(l => l !== level));
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </div>
+            </div>
           </Form>
         </Card.Body>
       </Card>
@@ -385,6 +448,7 @@ const UserList = () => {
               </thead>
               <tbody>
                 {currentItems.map((user) => {
+                  console.log(user.key);
                   // Helper to get level color
                   const getLevelColor = (level) => {
                     if (!level) return 'var(--bs-gray-500)';
@@ -427,6 +491,20 @@ const UserList = () => {
                           >
                             <i className="bi bi-person-vcard"></i>
                           </Link>
+                          {hasPermission('degrees', 'edit') && (
+                            <Button
+                              variant="outline-info"
+                              size="sm"
+                              className="btn-action"
+                              onClick={() => {
+                                setSelectedDegreeUser(user.code);
+                                setShowDegreeModal(true);
+                              }}
+                              title={t('Manage Degrees')}
+                            >
+                              <i className="bi bi-mortarboard-fill"></i>
+                            </Button>
+                          )}
                           {hasPermission('users', 'edit') && (
                             <Link
                               to={`/users/edit/${user.code}`}
@@ -510,6 +588,8 @@ const UserList = () => {
 
 
       {/* Quick View Modal */}
+
+      {/* Quick View Modal */}
       <Modal
         show={!!selectedUser}
         onHide={() => setSelectedUser(null)}
@@ -564,6 +644,16 @@ const UserList = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Degree Management Modal */}
+      <StudentDegreesModal
+        show={showDegreeModal}
+        onHide={() => {
+          setShowDegreeModal(false);
+          setSelectedDegreeUser(null);
+        }}
+        userCode={selectedDegreeUser}
+      />
     </div >
   );
 };

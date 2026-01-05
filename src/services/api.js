@@ -18,7 +18,7 @@ export const USER_API = {
   // Portal User Management
   PORTAL_SYNC: `${API_BASE_URL}/users/portal/sync`,
   GET_PORTAL_USERS: `${API_BASE_URL}/users/portal/users`,
-  UPDATE_PORTAL_USER: (uid) => `${API_BASE_URL}/users/portal/users/${uid}`
+  UPDATE_PORTAL_USER: (uid) => `${API_BASE_URL}/users/portal/users/${uid}`,
 };
 
 // Firestore endpoints
