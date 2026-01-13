@@ -5,8 +5,12 @@ import { Table, Button, Card, Form, InputGroup, Modal, Badge, Dropdown } from 'r
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx'; // Add this import
+import * as htmlToImage from 'html-to-image';
+import { saveAs } from 'file-saver';
+import JSZip from 'jszip';
 
 import StudentDegreesModal from './StudentDegreesModal'; // Import the new modal
+import StudentIDCard from './StudentIDCard';
 
 const UserList = () => {
   const { t } = useTranslation();
@@ -42,6 +46,7 @@ const UserList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
   const [selectedUser, setSelectedUser] = useState(null); // For Quick View Modal
+  const [selectedUserIds, setSelectedUserIds] = useState(new Set()); // For Bulk Selection
 
   const [showDegreeModal, setShowDegreeModal] = useState(false);
   const [selectedDegreeUser, setSelectedDegreeUser] = useState(null);
@@ -51,6 +56,138 @@ const UserList = () => {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+
+  // ID Card State
+  const [showIDModal, setShowIDModal] = useState(false);
+  const [selectedIDUser, setSelectedIDUser] = useState(null);
+  const [cardTime, setCardTime] = useState('5:00 م');
+  const [cardSaint, setCardSaint] = useState('');
+  const [cardLocation, setCardLocation] = useState('');
+
+  // Bulk Modal State
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkTime, setBulkTime] = useState('5:00 م');
+  const [bulkSaint, setBulkSaint] = useState('');
+  const [bulkLocation, setBulkLocation] = useState(''); // New state
+
+  // const componentRef = React.useRef();
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDownloadImage = async () => {
+    if (selectedIDUser) {
+      const element = document.getElementById('print-section');
+      if (element) {
+        try {
+          // Filter out non-element nodes to avoid potential errors
+          // const filter = (node) => {
+          //   return (node.tagName !== 'i'); // Example filter if needed, though usually not for basic cleanup
+          // }
+
+          const dataUrl = await htmlToImage.toPng(element, { backgroundColor: 'white' });
+          saveAs(dataUrl, `ID_${selectedIDUser.code}.png`);
+        } catch (error) {
+          console.error('Could not generate image', error);
+          alert('Error generating image');
+        }
+      }
+    }
+  };
+
+  const toggleSelectUser = (code) => {
+    const newSelected = new Set(selectedUserIds);
+    if (newSelected.has(code)) {
+      newSelected.delete(code);
+    } else {
+      newSelected.add(code);
+    }
+    setSelectedUserIds(newSelected);
+  };
+
+  const toggleSelectAll = (e) => {
+    if (e.target.checked) {
+      const allCodes = currentItems.map(u => u.code);
+      setSelectedUserIds(new Set(allCodes));
+    } else {
+      setSelectedUserIds(new Set());
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    if (selectedUserIds.size === 0) return;
+
+    setLoading(true); // Re-use main loading or add specific one
+    const zip = new JSZip();
+
+    // We need a hidden container to render items temporarily
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    document.body.appendChild(container);
+
+    // Temporary root for React to render into (if we were using ReactDOM.render)
+    // But since we are in a functional component, we might not easily render React components to a string synchronously with full styles involved for html-to-image
+    // A common workaround is to render them one by one in the visible modal or a hidden div that we assume behaves like the modal
+
+    // STRATEGY: 
+    // Iterate through selected users.
+    // For each user, we need to generate the ID Card HTML. 
+    // Since `StudentIDCard` is a React component, we can use a trick:
+    // We can just reuse the existing `StudentIDCard` component but mount it into a DOM node.
+    // However, mounting React components programmatically needs `createRoot` or similar.
+    // Simpler approach: 
+    // We will loop through the selected IDs, find the user object.
+    // We will use the existing `print-section` in the modal if strictly needed, BUT checking if we can just render components to static markup is harder with styles.
+    // Better: Create a hidden area in the JSX that renders ALL selected cards, wait for them to mount, then snap them? 
+    // No, that might be too heavy.
+
+    // Better approach for bulk: Loop sequentially.
+    // 1. Set a "bulkProcessing" state.
+    // 2. Render a hidden div in the main return that maps through `selectedUserIds` and renders `StudentIDCard` for each.
+    // 3. Use `useEffect` to detect when they are rendered? Or just use a delay?
+
+    try {
+      // Alternative: Just render one card at a time in the background?
+      // Let's try rendering ALL selected cards in a hidden container in the JSX (see below return)
+      // We will assign them unique IDs like `bulk-card-${code}`
+
+      const promises = Array.from(selectedUserIds).map(async (code) => {
+        const user = users[code] || Object.values(users).find(u => u.code === code);
+        if (!user) return null;
+
+        // We need to find the DOM element. 
+        // We will make sure they are rendered in the DOM.
+        const el = document.getElementById(`bulk-card-${code}`);
+        if (!el) return null;
+
+        try {
+          const blob = await htmlToImage.toBlob(el, { backgroundColor: 'white' });
+          if (blob) {
+            zip.file(`${user.fullName}_${code}.png`, blob);
+          }
+        } catch (err) {
+          console.error(`Failed to generate ID for ${code}`, err);
+        }
+      });
+
+      await Promise.all(promises);
+
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, "Student_IDs.zip");
+
+      setSelectedUserIds(new Set()); // Create logic to clear selection
+
+    } catch (error) {
+      console.error("Bulk download failed", error);
+      alert("Failed to generate bulk IDs");
+    } finally {
+      setLoading(false);
+      document.body.removeChild(container);
+    }
+  };
 
   useEffect(() => {
     document.title = `${t('users.title')} | Firebase Portal`;
@@ -141,6 +278,8 @@ const UserList = () => {
             phoneNumber: item['Phone Number'] || item.phoneNumber || item[t('users.phone')] || '',
             church: item.Church || item.church || item[t('users.church')] || ''
           }));
+
+          await userService.bulkUpdateUsers(transformedData);
 
           // Send to server
           await userService.bulkUpdateUsers(transformedData);
@@ -281,6 +420,15 @@ const UserList = () => {
           >
             <i className="bi bi-file-earmark-excel me-1"></i> {t('users.exportExcel')}
           </Button>
+          {selectedUserIds.size > 0 && (
+            <Button
+              variant="primary"
+              onClick={() => setShowBulkModal(true)}
+              className="d-flex align-items-center rounded-pill shadow-sm"
+            >
+              <i className="bi bi-images me-1"></i> Download IDs ({selectedUserIds.size})
+            </Button>
+          )}
           {hasPermission('users', 'edit') && (
             <Link to="/users/new" className="btn btn-primary rounded-pill shadow-sm d-flex align-items-center">
               <i className="bi bi-person-plus-fill me-1"></i> {t('nav.addUser')}
@@ -428,6 +576,13 @@ const UserList = () => {
             <Table striped bordered hover>
               <thead>
                 <tr>
+                  <th>
+                    <Form.Check
+                      type="checkbox"
+                      onChange={toggleSelectAll}
+                      checked={currentItems.length > 0 && selectedUserIds.size === currentItems.length}
+                    />
+                  </th>
                   <th className={getClassNamesFor('code')}>
                     {t('users.code')}
                   </th>
@@ -462,6 +617,13 @@ const UserList = () => {
 
                   return (
                     <tr key={user.code}>
+                      <td>
+                        <Form.Check
+                          type="checkbox"
+                          checked={selectedUserIds.has(user.code)}
+                          onChange={() => toggleSelectUser(user.code)}
+                        />
+                      </td>
                       <td data-label={t('users.code')}>{user.code}</td>
                       <td data-label={t('users.fullName')}>{user.fullName}</td>
                       <td data-label={t('users.level')}>
@@ -473,6 +635,21 @@ const UserList = () => {
                       <td data-label={t('users.church')}>{user.church || 'N/A'}</td>
                       <td data-label={t('common.actions')}>
                         <div className="btn-group" role="group">
+                          {/* Generate ID Card */}
+                          <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            className="btn-action"
+                            onClick={() => {
+                              setSelectedIDUser(user);
+                              setCardLocation(user.church || ""); // Prefill with user's church
+                              setCardSaint(""); // Reset or prefill if available
+                              setShowIDModal(true);
+                            }}
+                            title="Generate ID Card"
+                          >
+                            <i className="bi bi-person-badge"></i>
+                          </Button>
                           {/* Quick View Trigger */}
                           <Button
                             variant="outline-info"
@@ -645,6 +822,128 @@ const UserList = () => {
         </Modal.Footer>
       </Modal>
 
+      {/* ID Card Modal */}
+      <Modal
+        show={showIDModal}
+        onHide={() => setShowIDModal(false)}
+        size="lg"
+        centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-card-heading me-2"></i>
+            Student ID Card Preview
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="row">
+            <div className="col-md-4 border-end">
+              <h5>Card Details</h5>
+              <Form>
+                <Form.Group className="mb-3">
+                  <Form.Label>Class Location (مكان الفصل)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={cardLocation}
+                    onChange={(e) => setCardLocation(e.target.value)}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Time (الميعاد)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={cardTime}
+                    onChange={(e) => setCardTime(e.target.value)}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Class Saint (شفيع الفصل)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={cardSaint}
+                    onChange={(e) => setCardSaint(e.target.value)}
+                  />
+                </Form.Group>
+              </Form>
+              <div className="d-grid gap-2 mt-4">
+                <Button variant="success" onClick={handlePrint}>
+                  <i className="bi bi-printer me-2"></i> Print Card
+                </Button>
+                <Button variant="primary" onClick={handleDownloadImage}>
+                  <i className="bi bi-download me-2"></i> Download Image
+                </Button>
+              </div>
+            </div>
+            <div className="col-md-8 d-flex justify-content-center align-items-center bg-light p-4">
+              {selectedIDUser && (
+                <div id="print-section">
+                  <StudentIDCard
+                    user={selectedIDUser}
+                    additionalInfo={{
+                      time: cardTime,
+                      saint: cardSaint,
+                      location: cardLocation
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* Bulk Download Modal */}
+      <Modal show={showBulkModal} onHide={() => setShowBulkModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title><i className="bi bi-collection me-2"></i> Bulk Download Options</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Generating IDs for <strong>{selectedUserIds.size}</strong> students.</p>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Unified Location (مكان موحد)</Form.Label>
+              <Form.Control
+                type="text"
+                value={bulkLocation}
+                placeholder="Leave empty to use student's original church"
+                onChange={(e) => setBulkLocation(e.target.value)}
+              />
+              <Form.Text className="text-muted">
+                Overrides student's church if set.
+              </Form.Text>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Unified Time (ميعاد موحد)</Form.Label>
+              <Form.Control
+                type="text"
+                value={bulkTime}
+                onChange={(e) => setBulkTime(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Unified Saint (شفيع موحد)</Form.Label>
+              <Form.Control
+                type="text"
+                value={bulkSaint}
+                placeholder="Leave empty if variable"
+                onChange={(e) => setBulkSaint(e.target.value)}
+              />
+              <Form.Text className="text-muted">
+                This value will be applied to all cards.
+              </Form.Text>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowBulkModal(false)}>Cancel</Button>
+          <Button variant="primary" onClick={() => {
+            setShowBulkModal(false);
+            handleBulkDownload();
+          }}>
+            <i className="bi bi-download me-2"></i> Start Download
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       {/* Degree Management Modal */}
       <StudentDegreesModal
         show={showDegreeModal}
@@ -652,8 +951,28 @@ const UserList = () => {
           setShowDegreeModal(false);
           setSelectedDegreeUser(null);
         }}
-        userCode={selectedDegreeUser}
-      />
+        userCode={selectedDegreeUser} />
+      {/* We use absolute positioning off-screen with opacity 1 to ensure full rendering consistency */}
+      <div style={{ position: 'absolute', left: '-5000px', top: 0, zIndex: -1000, width: '1000px', backgroundColor: 'white' }}>
+        {Array.from(selectedUserIds).map(code => {
+          const user = users[code] || Object.values(users).find(u => u.code === code);
+          if (!user) return null;
+
+          return (
+            <div key={`bulk-${code}`} id={`bulk-card-${code}`} style={{ display: 'inline-block', margin: '20px', backgroundColor: 'white' }}>
+              <StudentIDCard
+                user={user}
+                additionalInfo={{
+                  time: bulkTime,
+                  location: bulkLocation || user.church, // Use bulk override or user specific
+                  saint: bulkSaint
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
     </div >
   );
 };

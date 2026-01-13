@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button, Card, Form, Alert } from 'react-bootstrap';
 import * as XLSX from 'xlsx';
 import { userService } from '../../services/services';
@@ -12,7 +12,7 @@ const BulkDegreeUpload = () => {
     const [error, setError] = useState(null);
 
     const handleDownloadTemplate = () => {
-        const headers = ['Code', 'Hymns', 'Agbya', 'Taks', 'Coptic'];
+        const headers = ['Code', 'Hymns', 'Agbya', 'Taks', 'Coptic', 'Attendance'];
         const ws = XLSX.utils.aoa_to_sheet([headers]);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Template");
@@ -105,7 +105,8 @@ const BulkDegreeUpload = () => {
                             hymns: row['Hymns'] || 0,
                             agbya: row['Agbya'] || 0,
                             taks: row['Taks'] || 0,
-                            coptic: row['Coptic'] || 0
+                            coptic: row['Coptic'] || 0,
+                            attendance: row['Attendance'] || 0
                         });
                     } else {
                         notFoundCodes.push(code);
@@ -173,7 +174,8 @@ const BulkDegreeUpload = () => {
                 [`degree/${selectedTerm}/hymns`]: u.hymns,
                 [`degree/${selectedTerm}/agbya`]: u.agbya,
                 [`degree/${selectedTerm}/taks`]: u.taks,
-                [`degree/${selectedTerm}/coptic`]: u.coptic
+                [`degree/${selectedTerm}/coptic`]: u.coptic,
+                [`degree/${selectedTerm}/attencance`]: u.attendance // Preserving typo 'attencance'
             }));
 
             // We need to handle this in `userService` properly.
