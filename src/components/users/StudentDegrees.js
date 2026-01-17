@@ -11,9 +11,9 @@ const StudentDegrees = () => {
 
     const [formData, setFormData] = useState({
         degree: {
-            firstTerm: { agbya: 0, coptic: 0, hymns: 0, taks: 0 },
-            secondTerm: { agbya: 0, attencance: 0, coptic: 0, hymns: 0, result: 0, taks: 0 },
-            thirdTerm: { agbya: 0, attencance: 0, coptic: 0, hymns: 0, result: 0, taks: 0 }
+            firstTerm: { agbya: 0, coptic: 0, hymns: 0, taks: 0, attencance: 0, total: 0 },
+            secondTerm: { agbya: 0, attencance: 0, coptic: 0, hymns: 0, taks: 0, total: 0 },
+            thirdTerm: { agbya: 0, attencance: 0, coptic: 0, hymns: 0, taks: 0, total: 0 }
         }
     });
 
@@ -57,6 +57,18 @@ const StudentDegrees = () => {
                     current = current[parts[i]];
                 }
                 current[parts[parts.length - 1]] = type === 'number' ? Number(value) : value;
+
+                // Auto-calculate Total
+                if (parts[0] === 'degree' && parts[1]) {
+                    const termData = newData.degree[parts[1]];
+                    const subjects = ['agbya', 'coptic', 'hymns', 'taks', 'attencance'];
+                    let total = 0;
+                    subjects.forEach(sub => {
+                        total += Number(termData[sub] || 0);
+                    });
+                    termData.total = total;
+                }
+
                 return newData;
             });
         }
@@ -101,10 +113,10 @@ const StudentDegrees = () => {
                     <Card.Header>{t('terms.first')}</Card.Header>
                     <Card.Body>
                         <Row>
-                            {['agbya', 'coptic', 'hymns', 'taks'].map(subject => (
-                                <Col md={3} key={`first-${subject}`}>
+                            {['agbya', 'coptic', 'hymns', 'taks', 'attencance'].map(subject => (
+                                <Col md={2} key={`first-${subject}`}>
                                     <Form.Group className="mb-3">
-                                        <Form.Label>{t(`subjects.${subject}`)}</Form.Label>
+                                        <Form.Label>{t(`subjects.${subject === 'attencance' ? 'attendance' : subject}`)}</Form.Label>
                                         <Form.Control
                                             type="number"
                                             name={`degree.firstTerm.${subject}`}
@@ -114,6 +126,17 @@ const StudentDegrees = () => {
                                     </Form.Group>
                                 </Col>
                             ))}
+                            <Col md={2}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>{t('subjects.result')}</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        name="degree.firstTerm.total"
+                                        disabled
+                                        value={formData.degree.firstTerm?.total || 0}
+                                    />
+                                </Form.Group>
+                            </Col>
                         </Row>
                     </Card.Body>
                 </Card>
@@ -140,9 +163,9 @@ const StudentDegrees = () => {
                                     <Form.Label>{t('subjects.result')}</Form.Label>
                                     <Form.Control
                                         type="number"
-                                        name="degree.secondTerm.result"
+                                        name="degree.secondTerm.total"
                                         disabled
-                                        value={formData.degree.secondTerm?.result || 0}
+                                        value={formData.degree.secondTerm?.total || 0}
                                     />
                                 </Form.Group>
                             </Col>
@@ -172,9 +195,9 @@ const StudentDegrees = () => {
                                     <Form.Label>{t('subjects.result')}</Form.Label>
                                     <Form.Control
                                         type="number"
-                                        name="degree.thirdTerm.result"
+                                        name="degree.thirdTerm.total"
                                         disabled
-                                        value={formData.degree.thirdTerm?.result || 0}
+                                        value={formData.degree.thirdTerm?.total || 0}
                                     />
                                 </Form.Group>
                             </Col>

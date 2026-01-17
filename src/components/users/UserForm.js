@@ -26,23 +26,25 @@ const UserForm = () => {
         agbya: 0,
         coptic: 0,
         hymns: 0,
-        taks: 0
+        taks: 0,
+        attencance: 0,
+        total: 0
       },
       secondTerm: {
         agbya: 0,
         attencance: 0,
         coptic: 0,
         hymns: 0,
-        result: 0,
-        taks: 0
+        taks: 0,
+        total: 0
       },
       thirdTerm: {
         agbya: 0,
         attencance: 0,
         coptic: 0,
         hymns: 0,
-        result: 0,
-        taks: 0
+        taks: 0,
+        total: 0
       }
     }
   });

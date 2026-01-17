@@ -106,7 +106,8 @@ const BulkDegreeUpload = () => {
                             agbya: row['Agbya'] || 0,
                             taks: row['Taks'] || 0,
                             coptic: row['Coptic'] || 0,
-                            attendance: row['Attendance'] || 0
+                            attendance: row['Attendance'] || 0,
+                            total: (row['Hymns'] || 0) + (row['Agbya'] || 0) + (row['Taks'] || 0) + (row['Coptic'] || 0) + (row['Attendance'] || 0)
                         });
                     } else {
                         notFoundCodes.push(code);
@@ -175,7 +176,8 @@ const BulkDegreeUpload = () => {
                 [`degree/${selectedTerm}/agbya`]: u.agbya,
                 [`degree/${selectedTerm}/taks`]: u.taks,
                 [`degree/${selectedTerm}/coptic`]: u.coptic,
-                [`degree/${selectedTerm}/attencance`]: u.attendance // Preserving typo 'attencance'
+                [`degree/${selectedTerm}/attencance`]: u.attendance, // Preserving typo 'attencance'
+                [`degree/${selectedTerm}/total`]: u.total
             }));
 
             // We need to handle this in `userService` properly.
