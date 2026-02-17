@@ -118,6 +118,25 @@ const UserList = () => {
     }
   };
 
+  // Handle user delete
+  const handleDelete = async (code, name) => {
+    if (window.confirm(t('users.confirmDelete', { name }))) {
+      try {
+        setLoading(true);
+        await userService.deletePenddingUser(code);
+        // Refresh list
+        const data = await userService.getPenddingUsers();
+        setUsers(data);
+        setFilteredUsers(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error deleting user:', err);
+        setError(t('common.error'));
+        setLoading(false);
+      }
+    }
+  };
+
   // Handle file upload
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -412,12 +431,27 @@ const UserList = () => {
                       <td data-label={t('users.phone')}>{user.phoneNumber || 'N/A'}</td>
                       <td data-label={t('users.church')}>{user.church || 'N/A'}</td>
                       <td data-label={t('common.actions')}>
-                        <Link to={`/users/${user.code}`} className="btn btn-sm btn-info btn-action">
-                          <i className="bi bi-eye"></i>
-                        </Link>
-                        <Link to={`/users/edit/${user.code}`} className="btn btn-sm btn-warning btn-action">
-                          <i className="bi bi-pencil"></i>
-                        </Link>
+                        {hasPermission('users', 'view') && (
+                          <Link to={`/users/${user.code}?type=pending`} className="btn btn-sm btn-info btn-action" title={t('users.quickView')}>
+                            <i className="bi bi-eye"></i>
+                          </Link>
+                        )}
+                        {hasPermission('users', 'edit') && (
+                          <Link to={`/users/edit/${user.code}?type=pending`} className="btn btn-sm btn-warning btn-action" title={t('common.edit')}>
+                            <i className="bi bi-pencil"></i>
+                          </Link>
+                        )}
+                        {hasPermission('users', 'delete') && (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            className="btn-action"
+                            onClick={() => handleDelete(user.code, user.fullName)}
+                            title={t('common.delete')}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        )}
                         {hasPermission('users', 'edit') && (
                           <Button
                             variant="success"

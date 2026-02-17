@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Modal, Form, Button, Alert, Row, Col, Badge } from 'react-bootstrap';
 
 const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
@@ -51,8 +51,8 @@ const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
 
     try {
       // Validate required fields
-      if (!formData.title || !formData.content || !formData.homework || 
-          !formData.term || !formData.yearNumber || formData.ageLevel.length === 0) {
+      if (!formData.title || !formData.content || !formData.homework ||
+        !formData.term || !formData.yearNumber || formData.ageLevel.length === 0) {
         throw new Error('All fields are required');
       }
 
@@ -67,7 +67,7 @@ const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
       };
 
       // Make POST request to your API endpoint
-      const response = await fetch('http://localhost:5000/api/firestore/taks', {
+      const response = await fetch('https://theotokosbackend-production.up.railway.app/api/firestore/taks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create document');
       }
-      
+
       setSuccess('Taks document created successfully!');
       setFormData({
         ageLevel: [],
@@ -89,7 +89,7 @@ const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
         title: '',
         yearNumber: ''
       });
-      
+
       // Notify parent component
       if (onDocumentCreated) {
         onDocumentCreated();
@@ -118,7 +118,7 @@ const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
             {success}
           </Alert>
         )}
-        
+
         <Form onSubmit={handleSubmit}>
           <Row className="mb-3">
             <Form.Group as={Col} controlId="title">
@@ -171,8 +171,8 @@ const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
                   placeholder="Add age level"
                   min="1"
                 />
-                <Button 
-                  variant="outline-primary" 
+                <Button
+                  variant="outline-primary"
                   onClick={handleAgeLevelAdd}
                   className="ms-2"
                   disabled={!ageLevelInput}
@@ -184,9 +184,9 @@ const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
                 {formData.ageLevel.map((age, index) => (
                   <Badge key={index} pill bg="primary" className="me-2 fs-6">
                     {age}
-                    <button 
-                      type="button" 
-                      className="ms-2 btn-close btn-close-white" 
+                    <button
+                      type="button"
+                      className="ms-2 btn-close btn-close-white"
                       aria-label="Remove"
                       onClick={() => handleAgeLevelRemove(index)}
                       style={{ fontSize: '0.5rem' }}
@@ -224,17 +224,17 @@ const CreateTaks = ({ show, onHide, onDocumentCreated }) => {
           </Form.Group>
 
           <div className="d-flex justify-content-end">
-            <Button 
-              variant="secondary" 
-              onClick={onHide} 
+            <Button
+              variant="secondary"
+              onClick={onHide}
               className="me-2"
               disabled={loading}
             >
               Cancel
             </Button>
-            <Button 
-              variant="primary" 
-              type="submit" 
+            <Button
+              variant="primary"
+              type="submit"
               disabled={loading}
             >
               {loading ? (

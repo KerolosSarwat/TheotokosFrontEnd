@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { userService } from '../../services/services';
 
 const UserForm = () => {
   const { t } = useTranslation();
   const { code } = useParams();
+  const [searchParams] = useSearchParams();
+  const type = searchParams.get('type');
   const navigate = useNavigate();
   const isEditMode = !!code;
 
@@ -62,7 +64,7 @@ const UserForm = () => {
       if (isEditMode) {
         try {
           setLoading(true);
-          const userData = await userService.getUserByCode(code);
+          const userData = await userService.getUserByCode(code, type);
           setFormData(userData);
           setLoading(false);
         } catch (err) {
@@ -123,9 +125,9 @@ const UserForm = () => {
     try {
       if (isEditMode) {
         // Update existing user
-        await userService.updateUser(code, formData);
+        await userService.updateUser(code, formData, type);
         setSuccess(true);
-        setTimeout(() => navigate(`/users/${code}`), 1500);
+        setTimeout(() => navigate(type === 'pending' ? '/penddingusers' : `/users/${code}`), 1500);
       } else {
         // Create new user
         await userService.createUser(formData);

@@ -46,9 +46,9 @@ export const userService = {
   },
 
   // Get user by code
-  getUserByCode: async (code) => {
+  getUserByCode: async (code, type) => {
     try {
-      const response = await api.get(USER_API.GET_BY_CODE(code));
+      const response = await api.get(USER_API.GET_BY_CODE(code, type));
       return response.data;
     } catch (error) {
       console.error(`Error fetching user with code ${code}:`, error);
@@ -68,9 +68,9 @@ export const userService = {
   },
 
   // Update user
-  updateUser: async (code, userData) => {
+  updateUser: async (code, userData, type) => {
     try {
-      const response = await api.put(USER_API.UPDATE(code), userData);
+      const response = await api.put(USER_API.UPDATE(code, type), userData);
       return response.data;
     } catch (error) {
       console.error(`Error updating user with code ${code}:`, error);
@@ -86,6 +86,16 @@ export const userService = {
       return response.data;
     } catch (error) {
       console.error(`Error deleting user with code ${code}:`, error);
+      throw error;
+    }
+  },
+
+  deletePenddingUser: async (code) => {
+    try {
+      const response = await api.delete(USER_API.DELETE_PENDDING(code));
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting pending user with code ${code}:`, error);
       throw error;
     }
   },
