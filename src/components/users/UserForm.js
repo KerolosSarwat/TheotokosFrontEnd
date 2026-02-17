@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -77,7 +77,7 @@ const UserForm = () => {
     };
 
     fetchUser();
-  }, [code, isEditMode]);
+  }, [code, isEditMode, type]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

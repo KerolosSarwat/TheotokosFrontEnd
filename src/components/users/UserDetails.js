@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Table, Badge, Button } from 'react-bootstrap';
+import { useState, useEffect } from 'react';
+import { Card, Row, Col, Table, Badge } from 'react-bootstrap';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { userService } from '../../services/services';
@@ -38,18 +38,18 @@ const UserDetails = () => {
     fetchUser();
   }, [code, type]);
 
-  const handleDelete = async () => {
-    if (window.confirm(t('users.confirmDelete'))) {
-      try {
-        await userService.deleteUser(code);
-        alert('User deleted successfully');
-        // navigate('/users');
-      } catch (err) {
-        alert('Error deleting user. Please try again.');
-        console.error('Error deleting user:', err);
-      }
-    }
-  };
+  // const handleDelete = async () => {
+  //   if (window.confirm(t('users.confirmDelete'))) {
+  //     try {
+  //       await userService.deleteUser(code);
+  //       alert('User deleted successfully');
+  //       // navigate('/users');
+  //     } catch (err) {
+  //       alert('Error deleting user. Please try again.');
+  //       console.error('Error deleting user:', err);
+  //     }
+  //   }
+  // };
 
   if (loading) {
     return <div className="text-center mt-5"><div className="spinner-border" role="status"></div></div>;
