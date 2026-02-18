@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert, Row, Col } from 'react-bootstrap';
+import { firestoreService } from '../../services/services';
+import { COLLECTIONS } from '../../services/api';
 
-const CreateCopticContent = ({ show, onHide, onDocumentCreated }) => {
-    const [formData, setFormData] = useState({
+const CreateCopticContent = ({ show, onHide, onDocumentCreated, editDocument }) => {
+    const isEditMode = !!editDocument;
+
+    const getInitialFormData = () => ({
         id: '',
         bigLetter: '',
         smallLetter: '',
@@ -16,9 +20,35 @@ const CreateCopticContent = ({ show, onHide, onDocumentCreated }) => {
         images: ['', '', ''],
         arabicWords: ['', '', '']
     });
+
+    const [formData, setFormData] = useState(getInitialFormData());
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+
+    // Pre-fill form when editing
+    useEffect(() => {
+        if (editDocument) {
+            setFormData({
+                id: editDocument.id || '',
+                bigLetter: editDocument.bigLetter || '',
+                smallLetter: editDocument.smallLetter || '',
+                letterName: editDocument.letterName || '',
+                letterRole: editDocument.letterRole?.length > 0 ? [...editDocument.letterRole] : ['', '', ''],
+                title: editDocument.title || '',
+                term: editDocument.term?.toString() || '',
+                sortOrder: editDocument.sortOrder?.toString() || '',
+                copticWords: editDocument.copticWords?.length > 0 ? [...editDocument.copticWords] : ['', '', ''],
+                arabicCoptic: editDocument.arabicCoptic?.length > 0 ? [...editDocument.arabicCoptic] : ['', '', ''],
+                images: editDocument.images?.length > 0 ? [...editDocument.images] : ['', '', ''],
+                arabicWords: editDocument.arabicWords?.length > 0 ? [...editDocument.arabicWords] : ['', '', '']
+            });
+        } else {
+            setFormData(getInitialFormData());
+        }
+        setError(null);
+        setSuccess(null);
+    }, [editDocument, show]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -60,13 +90,11 @@ const CreateCopticContent = ({ show, onHide, onDocumentCreated }) => {
         setSuccess(null);
 
         try {
-            // Validate required fields
             if (!formData.bigLetter || !formData.smallLetter || !formData.letterName ||
                 !formData.title || !formData.term || !formData.sortOrder) {
                 throw new Error('Required fields are missing');
             }
 
-            // Prepare the request data
             const requestData = {
                 id: formData.id,
                 bigLetter: formData.bigLetter,
@@ -82,43 +110,21 @@ const CreateCopticContent = ({ show, onHide, onDocumentCreated }) => {
                 arabicWords: formData.arabicWords.filter(item => item !== '')
             };
 
-            // Make POST request to your API endpoint
-            const response = await fetch('http://localhost:5000/api/firestore/coptic', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create document');
+            if (isEditMode) {
+                await firestoreService.updateDocument(COLLECTIONS.COPTIC, editDocument.id, requestData);
+                setSuccess('Coptic content updated successfully!');
+            } else {
+                await firestoreService.addDocument(COLLECTIONS.COPTIC, requestData);
+                setSuccess('Coptic content document created successfully!');
+                setFormData(getInitialFormData());
             }
 
-            setSuccess('Coptic content document created successfully!');
-            setFormData({
-                id: '',
-                bigLetter: '',
-                smallLetter: '',
-                letterName: '',
-                letterRole: ['', '', ''],
-                title: '',
-                term: '',
-                sortOrder: '',
-                copticWords: ['', '', ''],
-                arabicCoptic: ['', '', ''],
-                images: ['', '', ''],
-                arabicWords: ['', '', '']
-            });
-
-            // Notify parent component
             if (onDocumentCreated) {
                 onDocumentCreated();
             }
         } catch (err) {
-            setError(err.message || 'Failed to create document');
-            console.error('Error creating document:', err);
+            setError(err.message || `Failed to ${isEditMode ? 'update' : 'create'} document`);
+            console.error(`Error ${isEditMode ? 'updating' : 'creating'} document:`, err);
         } finally {
             setLoading(false);
         }
@@ -127,7 +133,7 @@ const CreateCopticContent = ({ show, onHide, onDocumentCreated }) => {
     return (
         <Modal show={show} onHide={onHide} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>Create New Coptic Content Document</Modal.Title>
+                <Modal.Title>{isEditMode ? 'Edit Coptic Content Document' : 'Create New Coptic Content Document'}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {error && (
@@ -152,6 +158,7 @@ const CreateCopticContent = ({ show, onHide, onDocumentCreated }) => {
                                 onChange={handleInputChange}
                                 required
                                 placeholder="Enter document ID"
+                                disabled={isEditMode}
                             />
                         </Form.Group>
                     </Row>
@@ -392,9 +399,9 @@ const CreateCopticContent = ({ show, onHide, onDocumentCreated }) => {
                             {loading ? (
                                 <>
                                     <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    Creating...
+                                    {isEditMode ? 'Updating...' : 'Creating...'}
                                 </>
-                            ) : 'Create Document'}
+                            ) : (isEditMode ? 'Update Document' : 'Create Document')}
                         </Button>
                     </div>
                 </Form>

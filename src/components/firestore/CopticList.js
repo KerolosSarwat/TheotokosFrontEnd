@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Alert, Form, InputGroup, Button } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
@@ -8,6 +8,7 @@ import CreateCopticContent from './CreateCopticContent'
 const CopticList = () => {
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
+  const [editDocument, setEditDocument] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,30 +19,29 @@ const CopticList = () => {
     document.title = `${t('firestore.copticTitle')} | Firebase Portal`;
   }, [t]);
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setLoading(true);
-        const data = await firestoreService.getCollection(COLLECTIONS.COPTIC);
-        setDocuments(data);
-        setFilteredDocuments(data);
-        setLoading(false);
-      } catch (err) {
-        setError(t('common.noResults'));
-        setLoading(false);
-        console.error('Error fetching documents:', err);
-      }
-    };
-
-    fetchDocuments();
+  const fetchDocuments = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await firestoreService.getCollection(COLLECTIONS.COPTIC);
+      setDocuments(data);
+      setFilteredDocuments(data);
+      setLoading(false);
+    } catch (err) {
+      setError(t('common.noResults'));
+      setLoading(false);
+      console.error('Error fetching documents:', err);
+    }
   }, [t]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredDocuments(documents);
     } else {
       const filtered = documents.filter(doc => {
-        // Search through all properties of the document
         return Object.values(doc).some(value =>
           value && typeof value === 'string' &&
           value.toLowerCase().includes(searchTerm.toLowerCase())
@@ -51,6 +51,28 @@ const CopticList = () => {
     }
   }, [searchTerm, documents]);
 
+  const handleEdit = (doc) => {
+    setEditDocument(doc);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (doc) => {
+    if (window.confirm(`Are you sure you want to delete "${doc.title || doc.id}"?`)) {
+      try {
+        await firestoreService.deleteDocument(COLLECTIONS.COPTIC, doc.id);
+        fetchDocuments();
+      } catch (err) {
+        console.error('Error deleting document:', err);
+        alert('Error deleting document. Please try again.');
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setEditDocument(null);
+  };
+
   if (loading) {
     return <div className="text-center mt-5"><div className="spinner-border" role="status"></div></div>;
   }
@@ -59,13 +81,11 @@ const CopticList = () => {
     return <div className="alert alert-danger mt-3">{error}</div>;
   }
 
-  // Function to render table based on document structure
   const renderDocumentTable = () => {
     if (filteredDocuments.length === 0) {
       return <Alert variant="info">{t('common.noResults')}</Alert>;
     }
 
-    // Get all unique keys from all documents
     const allKeys = new Set();
     filteredDocuments.forEach(doc => {
       Object.keys(doc).forEach(key => {
@@ -84,6 +104,7 @@ const CopticList = () => {
             {keys.map(key => (
               <th key={key}>{key}</th>
             ))}
+            <th>{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody>
@@ -95,6 +116,26 @@ const CopticList = () => {
                   {renderCellValue(doc[key])}
                 </td>
               ))}
+              <td>
+                <div className="d-flex gap-1">
+                  <Button
+                    variant="outline-warning"
+                    size="sm"
+                    onClick={() => handleEdit(doc)}
+                    title={t('common.edit')}
+                  >
+                    <i className="bi bi-pencil"></i>
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleDelete(doc)}
+                    title={t('common.delete')}
+                  >
+                    <i className="bi bi-trash"></i>
+                  </Button>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -102,7 +143,6 @@ const CopticList = () => {
     );
   };
 
-  // Helper function to render cell values based on their type
   const renderCellValue = (value) => {
     if (value === undefined || value === null) {
       return 'N/A';
@@ -119,7 +159,8 @@ const CopticList = () => {
         <h1 className="h2">{t('firestore.copticTitle')}</h1>
         <Button
           variant="primary"
-          onClick={() => setShowModal(true)}>
+          onClick={() => { setEditDocument(null); setShowModal(true); }}
+        >
           {t('common.add')}
         </Button>
       </div>
@@ -148,10 +189,10 @@ const CopticList = () => {
       </div>
       <CreateCopticContent
         show={showModal}
-        onHide={() => setShowModal(false)}
+        onHide={handleModalClose}
+        editDocument={editDocument}
         onDocumentCreated={() => {
-          // Add refresh logic here if needed
-          console.log('New Coptic content created');
+          fetchDocuments();
         }}
       />
     </div>

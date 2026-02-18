@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Alert, Form, InputGroup, Button } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
@@ -9,7 +9,8 @@ import CreateTaks from './CreateTaks';
 
 const TaksList = () => {
   const { t } = useTranslation();
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editDocument, setEditDocument] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,23 +22,23 @@ const TaksList = () => {
     document.title = `${t('firestore.taksTitle')} | Firebase Portal`;
   }, [t]);
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setLoading(true);
-        const data = await firestoreService.getCollection(COLLECTIONS.TAKS);
-        setDocuments(data);
-        setFilteredDocuments(data);
-        setLoading(false);
-      } catch (err) {
-        setError(t('common.noResults'));
-        setLoading(false);
-        console.error('Error fetching documents:', err);
-      }
-    };
-
-    fetchDocuments();
+  const fetchDocuments = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await firestoreService.getCollection(COLLECTIONS.TAKS);
+      setDocuments(data);
+      setFilteredDocuments(data);
+      setLoading(false);
+    } catch (err) {
+      setError(t('common.noResults'));
+      setLoading(false);
+      console.error('Error fetching documents:', err);
+    }
   }, [t]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -46,12 +47,9 @@ const TaksList = () => {
       const filtered = documents.filter(doc => {
         return Object.values(doc).some(value => {
           if (value === null || value === undefined) return false;
-
-          // Handle arrays/objects by stringifying them
           if (typeof value === 'object') {
             return JSON.stringify(value).includes(searchTerm);
           }
-          // Handle all other types by converting to string
           return String(value).includes(searchTerm);
         });
       });
@@ -59,9 +57,29 @@ const TaksList = () => {
     }
   }, [searchTerm, documents]);
 
-  // Export currently filtered documents (matching search + age level if selected)
+  const handleEdit = (doc) => {
+    setEditDocument(doc);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (doc) => {
+    if (window.confirm(`Are you sure you want to delete "${doc.title}"?`)) {
+      try {
+        await firestoreService.deleteDocument(COLLECTIONS.TAKS, doc.id);
+        fetchDocuments();
+      } catch (err) {
+        console.error('Error deleting document:', err);
+        alert('Error deleting document. Please try again.');
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setEditDocument(null);
+  };
+
   const exportFilteredToWord = async () => {
-    // Get documents to export - filtered by search AND age level if selected
     let docsToExport = filteredDocuments;
     if (selectedAgeLevel) {
       docsToExport = filteredDocuments.filter(doc => doc.ageLevel === selectedAgeLevel);
@@ -72,7 +90,6 @@ const TaksList = () => {
       return;
     }
 
-    // Create Word document
     const doc = new Document({
       sections: [{
         properties: {},
@@ -114,13 +131,11 @@ const TaksList = () => {
       }],
     });
 
-    // Generate filename based on filters
     let filename = 'Taks_Documents';
     if (selectedAgeLevel) filename += `_AgeLevel_${selectedAgeLevel}`;
     if (searchTerm) filename += `_Search_${searchTerm.substring(0, 10)}`;
     filename += '.docx';
 
-    // Download the file
     Packer.toBlob(doc).then(blob => {
       saveAs(blob, filename);
     });
@@ -153,21 +168,40 @@ const TaksList = () => {
       <Table striped bordered hover responsive>
         <thead>
           <tr>
-            <th>ID</th>
-            {keys.map(key => (
+            {keys.map(key => key !== 'images' && (
               <th key={key}>{key}</th>
             ))}
+            <th>{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody>
           {filteredDocuments.map(doc => (
             <tr key={doc.id}>
-              <td>{doc.id}</td>
-              {keys.map(key => (
+              {keys.map(key => key !== 'images' && (
                 <td key={`${doc.id}-${key}`}>
                   {renderCellValue(doc[key])}
                 </td>
               ))}
+              <td>
+                <div className="d-flex gap-1">
+                  <Button
+                    variant="outline-warning"
+                    size="sm"
+                    onClick={() => handleEdit(doc)}
+                    title={t('common.edit')}
+                  >
+                    <i className="bi bi-pencil"></i>
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleDelete(doc)}
+                    title={t('common.delete')}
+                  >
+                    <i className="bi bi-trash"></i>
+                  </Button>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -191,7 +225,8 @@ const TaksList = () => {
         <h1 className="h2">{t('firestore.taksTitle')}</h1>
         <Button
           variant="primary"
-          onClick={() => setShowCreateModal(true)}>
+          onClick={() => { setEditDocument(null); setShowModal(true); }}
+        >
           {t('common.add')}
         </Button>
       </div>
@@ -231,11 +266,11 @@ const TaksList = () => {
         {renderDocumentTable()}
       </div>
       <CreateTaks
-        show={showCreateModal}
-        onHide={() => setShowCreateModal(false)}
+        show={showModal}
+        onHide={handleModalClose}
+        editDocument={editDocument}
         onDocumentCreated={() => {
-          // Add refresh logic here if needed
-          console.log('New Taks created');
+          fetchDocuments();
         }}
       />
     </div>

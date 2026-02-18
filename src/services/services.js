@@ -200,15 +200,34 @@ export const firestoreService = {
     }
   },
 
-  addDocument: async (collection, docId) => {
+  addDocument: async (collection, data) => {
     try {
-      const response = await axios.post(FIRESTORE_API.ADD_DOCUMENT(collection));
+      const response = await axios.post(FIRESTORE_API.ADD_DOCUMENT(collection), data);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching document ${docId} from ${collection}:`, error);
+      console.error(`Error adding document to ${collection}:`, error);
+      throw error;
+    }
+  },
+
+  updateDocument: async (collection, docId, data) => {
+    try {
+      const response = await axios.put(FIRESTORE_API.UPDATE_DOCUMENT(collection, docId), data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating document ${docId} in ${collection}:`, error);
+      throw error;
+    }
+  },
+
+  deleteDocument: async (collection, docId) => {
+    try {
+      const response = await axios.delete(FIRESTORE_API.DELETE_DOCUMENT(collection, docId));
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting document ${docId} from ${collection}:`, error);
       throw error;
     }
   }
-
 
 };

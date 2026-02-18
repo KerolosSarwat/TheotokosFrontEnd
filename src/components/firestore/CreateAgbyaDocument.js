@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert, Row, Col, Badge } from 'react-bootstrap';
+import { firestoreService } from '../../services/services';
+import { COLLECTIONS } from '../../services/api';
 
-const CreateAgbyaDocument = ({ show, onHide, onDocumentCreated }) => {
-  const [formData, setFormData] = useState({
+const CreateAgbyaDocument = ({ show, onHide, onDocumentCreated, editDocument }) => {
+  const isEditMode = !!editDocument;
+
+  const getInitialFormData = () => ({
     ageLevel: [],
     content: '',
     description: '',
@@ -10,10 +14,30 @@ const CreateAgbyaDocument = ({ show, onHide, onDocumentCreated }) => {
     title: '',
     yearNumber: ''
   });
+
+  const [formData, setFormData] = useState(getInitialFormData());
   const [ageLevelInput, setAgeLevelInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (editDocument) {
+      setFormData({
+        ageLevel: editDocument.ageLevel || [],
+        content: editDocument.content || '',
+        description: editDocument.description || '',
+        term: editDocument.term?.toString() || '',
+        title: editDocument.title || '',
+        yearNumber: editDocument.yearNumber?.toString() || ''
+      });
+    } else {
+      setFormData(getInitialFormData());
+    }
+    setError(null);
+    setSuccess(null);
+  }, [editDocument, show]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -29,7 +53,7 @@ const CreateAgbyaDocument = ({ show, onHide, onDocumentCreated }) => {
       if (!formData.ageLevel.includes(num)) {
         setFormData(prev => ({
           ...prev,
-          ageLevel: [...prev.ageLevel, num].sort((a, b) => a - b) // Sort numbers
+          ageLevel: [...prev.ageLevel, num].sort((a, b) => a - b)
         }));
         setAgeLevelInput('');
       }
@@ -50,13 +74,11 @@ const CreateAgbyaDocument = ({ show, onHide, onDocumentCreated }) => {
     setSuccess(null);
 
     try {
-      // Validate required fields
       if (!formData.title || !formData.content || !formData.description ||
         !formData.term || !formData.yearNumber || formData.ageLevel.length === 0) {
         throw new Error('All fields are required');
       }
 
-      // Prepare the request data
       const requestData = {
         ageLevel: formData.ageLevel,
         content: formData.content,
@@ -66,37 +88,21 @@ const CreateAgbyaDocument = ({ show, onHide, onDocumentCreated }) => {
         yearNumber: Number(formData.yearNumber)
       };
 
-      // Make POST request to your API endpoint
-      const response = await fetch('https://theotokosbackend-production.up.railway.app/api/firestore/agbya', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create document');
+      if (isEditMode) {
+        await firestoreService.updateDocument(COLLECTIONS.AGBYA, editDocument.id, requestData);
+        setSuccess('Document updated successfully!');
+      } else {
+        await firestoreService.addDocument(COLLECTIONS.AGBYA, requestData);
+        setSuccess('Document created successfully!');
+        setFormData(getInitialFormData());
       }
 
-      setSuccess('Document created successfully!');
-      setFormData({
-        ageLevel: [],
-        content: '',
-        description: '',
-        term: '',
-        title: '',
-        yearNumber: ''
-      });
-
-      // Notify parent component
       if (onDocumentCreated) {
         onDocumentCreated();
       }
     } catch (err) {
-      setError(err.message || 'Failed to create document');
-      console.error('Error creating document:', err);
+      setError(err.message || `Failed to ${isEditMode ? 'update' : 'create'} document`);
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} document:`, err);
     } finally {
       setLoading(false);
     }
@@ -105,7 +111,7 @@ const CreateAgbyaDocument = ({ show, onHide, onDocumentCreated }) => {
   return (
     <Modal show={show} onHide={onHide} size="lg">
       <Modal.Header closeButton>
-        <Modal.Title>Create New Agbya Document</Modal.Title>
+        <Modal.Title>{isEditMode ? 'Edit Agbya Document' : 'Create New Agbya Document'}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {error && (
@@ -240,9 +246,9 @@ const CreateAgbyaDocument = ({ show, onHide, onDocumentCreated }) => {
               {loading ? (
                 <>
                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Creating...
+                  {isEditMode ? 'Updating...' : 'Creating...'}
                 </>
-              ) : 'Create Document'}
+              ) : (isEditMode ? 'Update Document' : 'Create Document')}
             </Button>
           </div>
         </Form>

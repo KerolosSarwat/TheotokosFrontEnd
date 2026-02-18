@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert, Row, Col, Badge } from 'react-bootstrap';
+import { firestoreService } from '../../services/services';
+import { COLLECTIONS } from '../../services/api';
 
-const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
-  const [formData, setFormData] = useState({
+const CreateHymns = ({ show, onHide, onDocumentCreated, editDocument }) => {
+  const isEditMode = !!editDocument;
+
+  const getInitialFormData = () => ({
     ageLevel: [],
     copticArabicContent: '',
     copticContent: '',
@@ -12,10 +16,32 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
     arabicContent: '',
     audio: ''
   });
+
+  const [formData, setFormData] = useState(getInitialFormData());
   const [ageLevelInput, setAgeLevelInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (editDocument) {
+      setFormData({
+        ageLevel: editDocument.ageLevel || [],
+        copticArabicContent: editDocument.copticArabicContent || '',
+        copticContent: editDocument.copticContent || '',
+        term: editDocument.term?.toString() || '',
+        title: editDocument.title || '',
+        yearNumber: editDocument.yearNumber?.toString() || '',
+        arabicContent: editDocument.arabicContent || '',
+        audio: editDocument.audio || ''
+      });
+    } else {
+      setFormData(getInitialFormData());
+    }
+    setError(null);
+    setSuccess(null);
+  }, [editDocument, show]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -48,8 +74,6 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
   const handleAudioUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Here you would typically upload to storage and get URL
-      // For now we'll just store the file name
       setFormData(prev => ({
         ...prev,
         audio: file.name
@@ -64,13 +88,11 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
     setSuccess(null);
 
     try {
-      // Validate required fields
-      if (!formData.title || !formData.copticContent || !formData.copticArabicContent || 
-          !formData.term || !formData.yearNumber || formData.ageLevel.length === 0) {
+      if (!formData.title || !formData.copticContent || !formData.copticArabicContent ||
+        !formData.term || !formData.yearNumber || formData.ageLevel.length === 0) {
         throw new Error('All fields except audio are required');
       }
 
-      // Prepare the request data
       const requestData = {
         ageLevel: formData.ageLevel,
         copticArabicContent: formData.copticArabicContent,
@@ -82,39 +104,21 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
         audio: formData.audio
       };
 
-      // Make POST request to your API endpoint
-      const response = await fetch('http://localhost:5000/api/firestore/hymns', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create hymn');
+      if (isEditMode) {
+        await firestoreService.updateDocument(COLLECTIONS.HYMNS, editDocument.id, requestData);
+        setSuccess('Hymn updated successfully!');
+      } else {
+        await firestoreService.addDocument(COLLECTIONS.HYMNS, requestData);
+        setSuccess('Hymn created successfully!');
+        setFormData(getInitialFormData());
       }
-      
-      setSuccess('Hymn created successfully!');
-      setFormData({
-        ageLevel: [],
-        copticArabicContent: '',
-        copticContent: '',
-        term: '',
-        title: '',
-        yearNumber: '',
-        arabicContent: '',
-        audio: ''
-      });
-      
-      // Notify parent component
+
       if (onDocumentCreated) {
         onDocumentCreated();
       }
     } catch (err) {
-      setError(err.message || 'Failed to create hymn');
-      console.error('Error creating hymn:', err);
+      setError(err.message || `Failed to ${isEditMode ? 'update' : 'create'} hymn`);
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} hymn:`, err);
     } finally {
       setLoading(false);
     }
@@ -123,7 +127,7 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
   return (
     <Modal show={show} onHide={onHide} size="lg">
       <Modal.Header closeButton>
-        <Modal.Title>Create New Hymn</Modal.Title>
+        <Modal.Title>{isEditMode ? 'Edit Hymn' : 'Create New Hymn'}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {error && (
@@ -136,7 +140,7 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
             {success}
           </Alert>
         )}
-        
+
         <Form onSubmit={handleSubmit}>
           <Row className="mb-3">
             <Form.Group as={Col} controlId="title">
@@ -189,8 +193,8 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
                   placeholder="Add age level"
                   min="1"
                 />
-                <Button 
-                  variant="outline-primary" 
+                <Button
+                  variant="outline-primary"
                   onClick={handleAgeLevelAdd}
                   className="ms-2"
                   disabled={!ageLevelInput}
@@ -202,9 +206,9 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
                 {formData.ageLevel.map((age, index) => (
                   <Badge key={index} pill bg="primary" className="me-2 fs-6">
                     {age}
-                    <button 
-                      type="button" 
-                      className="ms-2 btn-close btn-close-white" 
+                    <button
+                      type="button"
+                      className="ms-2 btn-close btn-close-white"
                       aria-label="Remove"
                       onClick={() => handleAgeLevelRemove(index)}
                       style={{ fontSize: '0.5rem' }}
@@ -268,25 +272,25 @@ const CreateHymns = ({ show, onHide, onDocumentCreated }) => {
           </Form.Group>
 
           <div className="d-flex justify-content-end">
-            <Button 
-              variant="secondary" 
-              onClick={onHide} 
+            <Button
+              variant="secondary"
+              onClick={onHide}
               className="me-2"
               disabled={loading}
             >
               Cancel
             </Button>
-            <Button 
-              variant="primary" 
-              type="submit" 
+            <Button
+              variant="primary"
+              type="submit"
               disabled={loading}
             >
               {loading ? (
                 <>
                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Creating...
+                  {isEditMode ? 'Updating...' : 'Creating...'}
                 </>
-              ) : 'Create Hymn'}
+              ) : (isEditMode ? 'Update Hymn' : 'Create Hymn')}
             </Button>
           </div>
         </Form>

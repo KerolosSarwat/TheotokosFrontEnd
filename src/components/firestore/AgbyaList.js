@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Alert, Form, InputGroup, Button } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
@@ -7,7 +7,8 @@ import CreateAgbyaDocument from './CreateAgbyaDocument';
 
 const AgbyaList = () => {
   const { t } = useTranslation();
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editDocument, setEditDocument] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,30 +19,29 @@ const AgbyaList = () => {
     document.title = `${t('firestore.agbyaTitle')} | Firebase Portal`;
   }, [t]);
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setLoading(true);
-        const data = await firestoreService.getCollection(COLLECTIONS.AGBYA);
-        setDocuments(data);
-        setFilteredDocuments(data);
-        setLoading(false);
-      } catch (err) {
-        setError(t('common.noResults'));
-        setLoading(false);
-        console.error('Error fetching documents:', err);
-      }
-    };
-
-    fetchDocuments();
+  const fetchDocuments = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await firestoreService.getCollection(COLLECTIONS.AGBYA);
+      setDocuments(data);
+      setFilteredDocuments(data);
+      setLoading(false);
+    } catch (err) {
+      setError(t('common.noResults'));
+      setLoading(false);
+      console.error('Error fetching documents:', err);
+    }
   }, [t]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredDocuments(documents);
     } else {
       const filtered = documents.filter(doc => {
-        // Search through all properties of the document
         return Object.values(doc).some(value =>
           value && typeof value === 'string' &&
           value.toLowerCase().includes(searchTerm.toLowerCase())
@@ -51,6 +51,28 @@ const AgbyaList = () => {
     }
   }, [searchTerm, documents]);
 
+  const handleEdit = (doc) => {
+    setEditDocument(doc);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (doc) => {
+    if (window.confirm(`Are you sure you want to delete "${doc.title}"?`)) {
+      try {
+        await firestoreService.deleteDocument(COLLECTIONS.AGBYA, doc.id);
+        fetchDocuments();
+      } catch (err) {
+        console.error('Error deleting document:', err);
+        alert('Error deleting document. Please try again.');
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setEditDocument(null);
+  };
+
   if (loading) {
     return <div className="text-center mt-5"><div className="spinner-border" role="status"></div></div>;
   }
@@ -59,13 +81,11 @@ const AgbyaList = () => {
     return <div className="alert alert-danger mt-3">{error}</div>;
   }
 
-  // Function to render table based on document structure
   const renderDocumentTable = () => {
     if (filteredDocuments.length === 0) {
       return <Alert variant="info">{t('common.noResults')}</Alert>;
     }
 
-    // Get all unique keys from all documents
     const allKeys = new Set();
     filteredDocuments.forEach(doc => {
       Object.keys(doc).forEach(key => {
@@ -80,21 +100,40 @@ const AgbyaList = () => {
       <Table striped bordered hover responsive>
         <thead>
           <tr>
-            <th>ID</th>
             {keys.map(key => (
               <th key={key}>{key}</th>
             ))}
+            <th>{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody>
           {filteredDocuments.map(doc => (
             <tr key={doc.id}>
-              <td>{doc.id}</td>
               {keys.map(key => (
                 <td key={`${doc.id}-${key}`}>
                   {renderCellValue(doc[key])}
                 </td>
               ))}
+              <td>
+                <div className="d-flex gap-1">
+                  <Button
+                    variant="outline-warning"
+                    size="sm"
+                    onClick={() => handleEdit(doc)}
+                    title={t('common.edit')}
+                  >
+                    <i className="bi bi-pencil"></i>
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleDelete(doc)}
+                    title={t('common.delete')}
+                  >
+                    <i className="bi bi-trash"></i>
+                  </Button>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -102,7 +141,6 @@ const AgbyaList = () => {
     );
   };
 
-  // Helper function to render cell values based on their type
   const renderCellValue = (value) => {
     if (value === undefined || value === null) {
       return 'N/A';
@@ -119,7 +157,7 @@ const AgbyaList = () => {
         <h1 className="h2">{t('firestore.agbyaTitle')}</h1>
         <Button
           className='btn btn-primary'
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => { setEditDocument(null); setShowModal(true); }}
         >
           {t('common.add')}
         </Button>
@@ -150,11 +188,11 @@ const AgbyaList = () => {
       </div>
 
       <CreateAgbyaDocument
-        show={showCreateModal}
-        onHide={() => setShowCreateModal(false)}
+        show={showModal}
+        onHide={handleModalClose}
+        editDocument={editDocument}
         onDocumentCreated={() => {
-          // Add any refresh logic here if needed
-          console.log('New document created');
+          fetchDocuments();
         }}
       />
     </div>

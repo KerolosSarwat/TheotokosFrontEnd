@@ -124,7 +124,7 @@ const AttendanceReport = () => {
       [t('users.church')]: student.church || 'N/A',
       [t('subjects.attendance')]: student.attendance?.length || 0,
       [t('attendance.table.recentAttendance')]: student.attendance?.length > 0
-        ? formatExcelDate(student.attendance[0].dateTime)
+        ? formatExcelDate(student.attendance[0].date)
         : t('common.noResults')
     }));
 
@@ -142,15 +142,17 @@ const AttendanceReport = () => {
     XLSX.writeFile(wb, fileName);
   };
 
-  const formatExcelDate = (dateTime) => {
-    return dateTime.split(' ')[0]; // Return only the date part
+  const formatExcelDate = (date) => {
+    if (!date) return 'N/A';
+    return date.split(' ')[0]; // Return only the date part
   };
 
-  const formatDisplayDate = (dateTime) => {
-    const [date, time] = dateTime.split(' ');
+  const formatDisplayDate = (date) => {
+    if (!date) return <div className="text-center text-muted">N/A</div>;
+    const [datePart, time] = date.split(' ');
     return (
       <div className="text-center">
-        <div className="fw-bold">{date}</div>
+        <div className="fw-bold">{datePart}</div>
         <div className="text-muted small">{time}</div>
       </div>
     );
@@ -409,7 +411,7 @@ const AttendanceReport = () => {
                           <div className="d-flex flex-column gap-1">
                             {recentAttendance.map((record, index) => (
                               <div key={index} className="d-flex justify-content-between align-items-center">
-                                <small>{formatDisplayDate(record.dateTime)}</small>
+                                <small>{formatDisplayDate(record.date || record.dateTime)}</small>
                                 {getStatusBadge(record.status)}
                               </div>
                             ))}
@@ -540,14 +542,16 @@ const AttendanceReport = () => {
                         <th>{t('common.birthdate')}</th>
                         <th>{t('common.actions')}</th>
                         <th>{t('common.active')}</th>
+                        <th>Term</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedStudent.attendance.map((record, index) => (
                         <tr key={index}>
-                          <td>{record.dateTime.split(' ')[0]}</td>
-                          <td>{record.dateTime.split(' ')[1]}</td>
+                          <td>{(record.date || record.dateTime || '').split(' ')[0] || 'N/A'}</td>
+                          <td>{(record.date || record.dateTime || '').split(' ')[1] || 'N/A'}</td>
                           <td>{getStatusBadge(record.status)}</td>
+                          <td>{record.term ?? 'N/A'}</td>
                         </tr>
                       ))}
                     </tbody>
