@@ -37,7 +37,8 @@
         "processing": "Processing...",
         "success": "Success",
         "error": "Error",
-        "add": "Add New"
+        "add": "Add New",
+        "select": "Select..."
     },
     "subjects": {
         "agbya": "Agbya",
@@ -94,7 +95,15 @@
         "noUsers": "No users found.",
         "approve": "Approve User",
         "confirmApprove": "Are you sure you want to approve user {{name}}?",
-        "approveSuccess": "User approved successfully!"
+        "approveSuccess": "User approved successfully!",
+        "personalInfo": "Personal Information",
+        "educationLevel": "Education Level",
+        "contactDetails": "Contact Details",
+        "churchDetails": "Church Details",
+        "memberLevel": "Member Level",
+        "submitRegistration": "SUBMIT REGISTRATION",
+        "memberRegistration": "Member Registration",
+        "selectChurch": "Select Church"
     },
     "attendance": {
         "title": "Attendance Report",
