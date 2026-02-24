@@ -1,0 +1,202 @@
+.user-form-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-top: 20px;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #7c0000;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.1rem;
+  text-decoration: none;
+}
+
+.back-button:hover {
+  color: #5a0000;
+}
+
+.form-title {
+  flex: 1;
+  text-align: center;
+  color: #7c0000;
+  font-weight: 800;
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.progress-steps {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+  padding: 0 10px;
+}
+
+.progress-step {
+  flex: 1;
+  height: 10px;
+  background-color: #e5e0e0;
+  border-radius: 5px;
+}
+
+.progress-step.active {
+  background-color: #7c0000;
+}
+
+.form-section-card {
+  background: white;
+  border-radius: 15px;
+  padding: 24px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  border: 1px solid #f0f0f0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: #7c0000;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+}
+
+.section-icon {
+  background-color: #7c0000;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.form-label-custom {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-control-custom {
+  background-color: #f7f7f7 !important;
+  border: 1px solid #f0f0f0 !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  font-size: 1rem !important;
+  color: #333 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.form-control-custom:focus {
+  background-color: #fff !important;
+  border-color: #7c0000 !important;
+  box-shadow: 0 0 0 0.2rem rgba(124, 0, 0, 0.1) !important;
+  outline: none;
+}
+
+.form-control-custom::placeholder {
+  color: #adb5bd;
+}
+
+.member-level-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.member-level-btn {
+  border: 1px solid #e0e0e0;
+  background: #fdf2f2;
+  color: #7c0000;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.member-level-btn.active {
+  background-color: #7c0000;
+  color: white;
+  border-color: #7c0000;
+}
+
+.submit-btn-custom {
+  background-color: #7c0000 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  width: 100%;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 6px 15px rgba(124, 0, 0, 0.25);
+  font-size: 1.1rem !important;
+  color: white !important;
+}
+
+.submit-btn-custom:hover {
+  background-color: #660000 !important;
+  transform: translateY(-1px);
+}
+
+.submit-btn-custom:active {
+  transform: translateY(0);
+}
+
+.footer-text {
+  text-align: center;
+  color: #99a3a4;
+  font-size: 0.8rem;
+  margin-top: 10px;
+  margin-bottom: 40px;
+  padding: 0 20px;
+  line-height: 1.5;
+}
+
+/* For Select/Dropdown custom arrow */
+select.form-control-custom {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237c0000' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  padding-right: 40px !important;
+}
+
+/* Date input custom styling */
+input[type="date"].form-control-custom {
+  position: relative;
+}
+
+input[type="date"].form-control-custom::-webkit-calendar-picker-indicator {
+  color: #7c0000;
+  cursor: pointer;
+}
