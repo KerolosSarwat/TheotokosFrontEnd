@@ -116,35 +116,44 @@ const AttendanceReport = () => {
   };
 
   const exportToExcel = () => {
-    // Prepare data for export
-    const dataForExport = sortedStudents.map(student => ({
-      [t('users.code')]: student.code || '',
-      [t('users.fullName')]: student.fullName || '',
-      [t('users.level')]: student.level || 'N/A',
-      [t('users.church')]: student.church || 'N/A',
-      [t('subjects.attendance')]: student.attendance?.length || 0,
-      [t('attendance.table.recentAttendance')]: student.attendance?.length > 0
-        ? formatExcelDate(student.attendance[0].date)
-        : t('common.noResults')
-    }));
+    const dataForExport = sortedStudents.flatMap((student) => {
+      const attendanceRecords = student.attendance || [];
 
-    // Create worksheet
+      if (attendanceRecords.length === 0) {
+        return [{
+          [t('users.code')]: student.code || '',
+          [t('users.fullName')]: student.fullName || '',
+          [t('users.level')]: student.level || 'N/A',
+          [t('users.church')]: student.church || 'N/A',
+          [t('attendance.table.date')]: 'N/A',
+          [t('attendance.table.time')]: 'N/A',
+          [t('attendance.table.status')]: t('common.noResults'),
+          Term: 'N/A'
+        }];
+      }
+
+      return attendanceRecords.map((record) => {
+        const [attendanceDate = 'N/A', attendanceTime = 'N/A'] = (record.date || record.dateTime || '').split(' ');
+
+        return {
+          [t('users.code')]: student.code || '',
+          [t('users.fullName')]: student.fullName || '',
+          [t('users.level')]: student.level || 'N/A',
+          [t('users.church')]: student.church || 'N/A',
+          [t('attendance.table.date')]: attendanceDate,
+          [t('attendance.table.time')]: attendanceTime,
+          [t('attendance.table.status')]: record.status || 'N/A',
+          Term: record.term ?? 'N/A'
+        };
+      });
+    });
+
     const ws = XLSX.utils.json_to_sheet(dataForExport);
-
-    // Create workbook
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Attendance Report");
+    XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report');
 
-    // Generate file name with timestamp
     const fileName = `attendance_report_${new Date().toISOString().slice(0, 10)}.xlsx`;
-
-    // Export to Excel
     XLSX.writeFile(wb, fileName);
-  };
-
-  const formatExcelDate = (date) => {
-    if (!date) return 'N/A';
-    return date.split(' ')[0]; // Return only the date part
   };
 
   const formatDisplayDate = (date) => {
@@ -539,9 +548,9 @@ const AttendanceReport = () => {
                   <Table striped bordered size="sm">
                     <thead>
                       <tr>
-                        <th>{t('common.birthdate')}</th>
-                        <th>{t('common.actions')}</th>
-                        <th>{t('common.active')}</th>
+                        <th>{t('attendance.table.date')}</th>
+                        <th>{t('attendance.table.time')}</th>
+                        <th>{t('attendance.table.status')}</th>
                         <th>Term</th>
                       </tr>
                     </thead>
