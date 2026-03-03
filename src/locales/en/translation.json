@@ -112,8 +112,11 @@
             "recentAttendance": "Last 3 Attendances",
             "totalStats": "Total (P/L/A)",
             "details": "Details",
+            "status": "Status",
             "noLog": "No attendance records for this student",
-            "fullLog": "Full Attendance Log"
+            "fullLog": "Full Attendance Log",
+            "date": "Date",
+            "time": "Time"
         },
         "status": {
             "present": "Present",
