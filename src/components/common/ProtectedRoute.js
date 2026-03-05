@@ -1,10 +1,10 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Spinner } from 'react-bootstrap';
+import { Spinner, Alert, Button } from 'react-bootstrap';
 
-const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated, loading } = useAuth();
+const ProtectedRoute = ({ children, requiredPermission }) => {
+    const { isAuthenticated, loading, hasPermission } = useAuth();
     const location = useLocation();
 
     if (loading) {
@@ -21,6 +21,19 @@ const ProtectedRoute = ({ children }) => {
     if (!isAuthenticated) {
         // Redirect to login but save the attempted location
         return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (requiredPermission && !hasPermission(requiredPermission.module, requiredPermission.action)) {
+        return (
+            <div className="p-4 text-center mt-5">
+                <Alert variant="danger">
+                    Access Denied: You do not have permission to access this page.
+                </Alert>
+                <div className="mt-3">
+                    <Button onClick={() => window.history.back()}>Go Back</Button>
+                </div>
+            </div>
+        );
     }
 
     return children;

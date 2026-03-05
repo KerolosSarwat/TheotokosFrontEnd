@@ -1,6 +1,6 @@
 // API configuration
-const API_BASE_URL = 'https://theotokosbackend-production.up.railway.app/api';
-// const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://theotokosbackend-production.up.railway.app/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // User endpoints
 export const USER_API = {
@@ -29,6 +29,12 @@ export const FIRESTORE_API = {
   ADD_DOCUMENT: (collection) => `${API_BASE_URL}/firestore/${collection}`,
   UPDATE_DOCUMENT: (collection, docId) => `${API_BASE_URL}/firestore/${collection}/${docId}`,
   DELETE_DOCUMENT: (collection, docId) => `${API_BASE_URL}/firestore/${collection}/${docId}`
+};
+
+// Config endpoints
+export const CONFIG_API = {
+  GET_CONFIG: `${API_BASE_URL}/config`,
+  UPDATE_CONFIG: `${API_BASE_URL}/config`
 };
 
 // Collections

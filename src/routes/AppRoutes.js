@@ -18,6 +18,7 @@ import Notification from '../components/users/NotificationForm';
 import Profile from '../components/profile/Profile';
 import StudentDegrees from '../components/users/StudentDegrees';
 import BulkDegreeUpload from '../components/users/BulkDegreeUpload';
+import Settings from '../components/settings/Settings';
 
 // Auth Components
 import Login from '../components/auth/Login';
@@ -71,6 +72,11 @@ const AppRoutes = () => {
                 <Route path="/users/edit/:code" element={<UserForm />} />
                 <Route path="/users/:code" element={<UserDetails />} />
                 <Route path="/admin/portal-users" element={<PortalUserList />} />
+                <Route path="/settings" element={
+                    <ProtectedRoute requiredPermission={{ module: 'settings', action: 'view' }}>
+                        <Settings />
+                    </ProtectedRoute>
+                } />
                 <Route path="/users/notification" element={<Notification />} />
                 <Route path="/users/:code/degrees" element={<StudentDegrees />} />
                 <Route path="/degrees" element={

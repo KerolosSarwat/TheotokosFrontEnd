@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Alert, Form, InputGroup, Button } from 'react-bootstrap';
+import { Card, Table, Alert, Form, InputGroup, Button, Badge } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
 import CreateHymns from './CreateHymns';
+import { AGE_LEVEL_MAP, truncateText } from '../../utils/constants';
 
 const HymnsList = () => {
   const { t } = useTranslation();
@@ -111,7 +112,7 @@ const HymnsList = () => {
             <tr key={doc.id}>
               {keys.map(key => key !== 'audio' && (
                 <td className={key} key={`${doc.id}-${key}`}>
-                  {renderCellValue(doc[key])}
+                  {renderCellValue(doc[key], key)}
                 </td>
               ))}
               <td>
@@ -141,10 +142,32 @@ const HymnsList = () => {
     );
   };
 
-  const renderCellValue = (value) => {
+  const renderCellValue = (value, key) => {
     if (value === undefined || value === null) {
       return 'N/A';
-    } else if (typeof value === 'object') {
+    }
+
+    if (key === 'ageLevel' && Array.isArray(value)) {
+      return (
+        <div className="d-flex flex-wrap gap-1">
+          {value.map(level => (
+            <Badge key={level} bg="info" size="sm">
+              {AGE_LEVEL_MAP[level] || level}
+            </Badge>
+          ))}
+        </div>
+      );
+    }
+
+    if (typeof value === 'string' && value.length > 50) {
+      return (
+        <span title={value}>
+          {truncateText(value, 50)}
+        </span>
+      );
+    }
+
+    if (typeof value === 'object') {
       return JSON.stringify(value);
     } else {
       return String(value);

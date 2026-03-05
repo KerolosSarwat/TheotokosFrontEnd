@@ -37,7 +37,8 @@ const PortalUserList = () => {
                 users: { view: false, edit: false, delete: false },
                 attendance: { view: false, edit: false, delete: false },
                 content: { view: false, edit: false, delete: false },
-                degrees: { view: false, edit: false, delete: false }
+                degrees: { view: false, edit: false, delete: false },
+                settings: { view: true, edit: false }
             }
         });
         setShowModal(true);
@@ -167,18 +168,21 @@ const PortalUserList = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {['users', 'attendance', 'content', 'degrees'].map(module => (
+                                {['users', 'attendance', 'content', 'degrees', 'settings'].map(module => (
                                     <tr key={module}>
                                         <td className="text-capitalize">{module}</td>
                                         {['view', 'edit', 'delete'].map(action => (
                                             <td key={action} className="text-center">
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    name={`permissions.${module}.${action}`}
-                                                    checked={formData.permissions?.[module]?.[action] || false}
-                                                    onChange={handleChange}
-                                                    disabled={formData.role === 'admin' || formData.role === 'super_admin'}
-                                                />
+                                                {/* Hide delete for settings as it's not applicable */}
+                                                {(module !== 'settings' || action !== 'delete') ? (
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        name={`permissions.${module}.${action}`}
+                                                        checked={formData.permissions?.[module]?.[action] || false}
+                                                        onChange={handleChange}
+                                                        disabled={formData.role === 'admin' || formData.role === 'super_admin'}
+                                                    />
+                                                ) : null}
                                             </td>
                                         ))}
                                     </tr>

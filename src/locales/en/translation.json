@@ -10,7 +10,8 @@
         "hymns": "Hymns",
         "addUser": "Add User",
         "profile": "My Profile",
-        "logout": "Logout"
+        "logout": "Logout",
+        "settings": "Settings"
     },
     "common": {
         "search": "Search...",
@@ -37,7 +38,15 @@
         "processing": "Processing...",
         "success": "Success",
         "error": "Error",
-        "add": "Add New"
+        "add": "Add New",
+        "next": "Next",
+        "previous": "Previous",
+        "of": "of",
+        "displaying": "Displaying",
+        "students": "students",
+        "filterByLevel": "Filter by Level",
+        "filterByDate": "Filter by Date",
+        "selectAll": "Select All"
     },
     "subjects": {
         "agbya": "Agbya",
@@ -156,5 +165,21 @@
             "edit": "Edit",
             "delete": "Delete"
         }
+    },
+    "settings": {
+        "title": "System Settings",
+        "degreesTab": "Degrees Configuration",
+        "termsTab": "Terms & Schedule",
+        "degreesTitle": "Subject Degrees",
+        "globalTermsTitle": "Global Term Settings",
+        "currentTerm": "Current Active Term",
+        "term": "Term",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "weeksCount": "Weeks Count",
+        "saveSuccess": "Settings updated successfully!",
+        "saveError": "Failed to save settings. Please try again.",
+        "loadError": "Failed to load configuration. Please check if the backend is running and the 'config' node exists in Realtime Database.",
+        "saveAll": "Save All Settings"
     }
 }

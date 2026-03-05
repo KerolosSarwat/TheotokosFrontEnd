@@ -1,7 +1,7 @@
 // components/AttendanceReport/AttendanceReport.js
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { userService } from '../../services/services';
-import { Table, Card, Form, InputGroup, Button, Modal, Badge } from 'react-bootstrap';
+import { Table, Card, Form, InputGroup, Button, Modal, Badge, Dropdown } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx';
 
@@ -11,7 +11,8 @@ const AttendanceReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState('all');
+  const [selectedLevels, setSelectedLevels] = useState([]);
+  const [dateFilter, setDateFilter] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
@@ -30,7 +31,6 @@ const AttendanceReport = () => {
 
   // Common levels for filtering
   const LEVELS = [
-    'all',
     'حضانة',
     'أولى ابتدائى',
     'ثانية ابتدائى',
@@ -46,7 +46,8 @@ const AttendanceReport = () => {
   const fetchAttendanceReport = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await userService.getUsersAttendance(selectedLevel);
+      // Fetch all if multi-level or none selected to facilitate client filtering
+      const data = await userService.getUsersAttendance('all');
       setStudents(data);
       setLoading(false);
     } catch (err) {
@@ -54,25 +55,49 @@ const AttendanceReport = () => {
       setLoading(false);
       console.error('Error fetching attendance report:', err);
     }
-  }, [selectedLevel, t]);
+  }, [t]);
 
   useEffect(() => {
     fetchAttendanceReport();
   }, [fetchAttendanceReport]);
 
-  // Filter students by search term
+  // Filter students by search term, levels, and date
   const filteredStudents = useMemo(() => {
-    return students.filter(student =>
-      student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.code?.includes(searchTerm) ||
-      student.church?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [students, searchTerm]);
+    let result = students;
 
-  // Reset pagination when search or level changes
+    // 1. Level Filter
+    if (selectedLevels.length > 0) {
+      result = result.filter(student => student.level && selectedLevels.includes(student.level));
+    }
+
+    // 2. Date Filter
+    if (dateFilter) {
+      result = result.filter(student =>
+        student.attendance && student.attendance.some(record =>
+          (record.date || record.dateTime || '').includes(dateFilter)
+        )
+      );
+    }
+
+    // 3. Search Term
+    if (searchTerm.trim()) {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      result = result.filter(student =>
+        (student.fullName && String(student.fullName).toLowerCase().includes(lowerSearchTerm)) ||
+        (student.code && String(student.code).toLowerCase().includes(lowerSearchTerm)) ||
+        (student.phoneNumber && String(student.phoneNumber).includes(searchTerm)) ||
+        (student.level && String(student.level).toLowerCase().includes(lowerSearchTerm)) ||
+        (student.church && String(student.church).toLowerCase().includes(lowerSearchTerm))
+      );
+    }
+
+    return result;
+  }, [students, searchTerm, selectedLevels, dateFilter]);
+
+  // Reset pagination when search or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedLevel]);
+  }, [searchTerm, selectedLevels, dateFilter]);
 
   // Sort students
   const sortedStudents = useMemo(() => {
@@ -237,41 +262,80 @@ const AttendanceReport = () => {
       </div>
 
       {/* Filters Section */}
-      <Card className="mb-4">
+      <Card className="mb-4 shadow-sm border-0 bg-light">
         <Card.Body>
           <div className="row g-3">
-            <div className="col-md-6">
-              <Form.Label htmlFor="levelFilter">{t('attendance.studyLevel')}:</Form.Label>
-              <Form.Select
-                id="levelFilter"
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-              >
-                {LEVELS.map(level => (
-                  <option key={level} value={level}>
-                    {level === 'all' ? t('attendance.allLevels') : level}
-                  </option>
-                ))}
-              </Form.Select>
+            <div className="col-md-4">
+              <Form.Label className="fw-bold small text-muted text-uppercase">{t('common.filterByLevel')}</Form.Label>
+              <Dropdown autoClose="outside" className="w-100">
+                <Dropdown.Toggle variant="white" className="w-100 text-start d-flex justify-content-between align-items-center border shadow-sm">
+                  <span className="text-truncate">
+                    {selectedLevels.length > 0
+                      ? `${selectedLevels.length} ${t('common.students')}`
+                      : t('attendance.allLevels')}
+                  </span>
+                </Dropdown.Toggle>
+                <Dropdown.Menu className="w-100 p-2 shadow-lg border-0" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  <div className="px-2 pb-2">
+                    <Form.Check
+                      type="checkbox"
+                      id="selectAllLevels"
+                      label={t('common.selectAll')}
+                      className="fw-bold"
+                      checked={selectedLevels.length === LEVELS.length}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedLevels([...LEVELS]);
+                        else setSelectedLevels([]);
+                      }}
+                    />
+                  </div>
+                  <Dropdown.Divider />
+                  {LEVELS.map(level => (
+                    <div key={level} className="px-2 py-1">
+                      <Form.Check
+                        type="checkbox"
+                        id={`check-${level}`}
+                        label={level}
+                        value={level}
+                        checked={selectedLevels.includes(level)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedLevels([...selectedLevels, level]);
+                          else setSelectedLevels(selectedLevels.filter(l => l !== level));
+                        }}
+                      />
+                    </div>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
             </div>
-            <div className="col-md-6">
-              <Form.Label htmlFor="search">{t('common.search')}:</Form.Label>
-              <InputGroup>
-                <InputGroup.Text>
-                  <i className="bi bi-search"></i>
+            <div className="col-md-4">
+              <Form.Label className="fw-bold small text-muted text-uppercase">{t('common.filterByDate')}</Form.Label>
+              <Form.Control
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="border shadow-sm"
+              />
+            </div>
+            <div className="col-md-4">
+              <Form.Label className="fw-bold small text-muted text-uppercase">{t('common.search')}</Form.Label>
+              <InputGroup className="shadow-sm">
+                <InputGroup.Text className="bg-white border-end-0">
+                  <i className="bi bi-search text-muted"></i>
                 </InputGroup.Text>
                 <Form.Control
-                  id="search"
                   placeholder={t('attendance.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="border-start-0"
                 />
                 {searchTerm && (
                   <Button
-                    variant="outline-secondary"
+                    variant="white"
+                    className="border border-start-0"
                     onClick={() => setSearchTerm('')}
                   >
-                    <i className="bi bi-x-lg"></i>
+                    <i className="bi bi-x-lg text-muted"></i>
                   </Button>
                 )}
               </InputGroup>
@@ -279,35 +343,35 @@ const AttendanceReport = () => {
           </div>
 
           {/* Statistics */}
-          <div className="row mt-3 text-center">
-            <div className="col-md-3">
-              <div className="border rounded p-2 bg-light">
-                <div className="h5 mb-1 text-primary">{sortedStudents.length}</div>
-                <small className="text-muted">{t('attendance.stats.totalStudents')}</small>
+          <div className="row mt-4 g-2">
+            <div className="col-6 col-md-3">
+              <div className="p-3 rounded bg-white shadow-sm border-start border-primary border-4">
+                <div className="h4 mb-0 fw-bold">{sortedStudents.length}</div>
+                <div className="small text-muted">{t('attendance.stats.totalStudents')}</div>
               </div>
             </div>
-            <div className="col-md-3">
-              <div className="border rounded p-2 bg-light">
-                <div className="h5 mb-1 text-success">
+            <div className="col-6 col-md-3">
+              <div className="p-3 rounded bg-white shadow-sm border-start border-success border-4">
+                <div className="h4 mb-0 fw-bold">
                   {sortedStudents.filter(s => s.attendance?.length > 0).length}
                 </div>
-                <small className="text-muted">{t('attendance.stats.withAttendance')}</small>
+                <div className="small text-muted">{t('attendance.stats.withAttendance')}</div>
               </div>
             </div>
-            <div className="col-md-3">
-              <div className="border rounded p-2 bg-light">
-                <div className="h5 mb-1 text-warning">
+            <div className="col-6 col-md-3">
+              <div className="p-3 rounded bg-white shadow-sm border-start border-warning border-4">
+                <div className="h4 mb-0 fw-bold">
                   {sortedStudents.reduce((total, student) => total + (student.attendance?.length || 0), 0)}
                 </div>
-                <small className="text-muted">{t('attendance.stats.totalRecords')}</small>
+                <div className="small text-muted">{t('attendance.stats.totalRecords')}</div>
               </div>
             </div>
-            <div className="col-md-3">
-              <div className="border rounded p-2 bg-light">
-                <div className="h5 mb-1 text-info">
-                  {selectedLevel === 'all' ? t('attendance.allLevels') : selectedLevel}
+            <div className="col-6 col-md-3">
+              <div className="p-3 rounded bg-white shadow-sm border-start border-info border-4">
+                <div className="h4 mb-0 fw-bold text-truncate" title={selectedLevels.length > 0 ? selectedLevels.join(', ') : t('attendance.allLevels')}>
+                  {selectedLevels.length > 0 ? selectedLevels.length : t('attendance.allLevels')}
                 </div>
-                <small className="text-muted">{t('attendance.stats.selectedLevel')}</small>
+                <div className="small text-muted">{t('attendance.stats.selectedLevel')}</div>
               </div>
             </div>
           </div>
@@ -316,67 +380,62 @@ const AttendanceReport = () => {
 
       {/* Students Table */}
       {sortedStudents.length === 0 ? (
-        <div className="alert alert-info text-center">
-          <i className="bi bi-info-circle-fill me-2"></i>
-          {t('common.noResults')}
-        </div>
+        <Card className="border-0 shadow-sm text-center p-5">
+          <Card.Body>
+            <i className="bi bi-search display-1 text-muted opacity-25 mb-3"></i>
+            <h5 className="text-muted">{t('common.noResults')}</h5>
+            <p className="small text-muted mb-0">Try adjusting your filters or search term</p>
+          </Card.Body>
+        </Card>
       ) : (
         <>
-          <div className="table-responsive">
-            <Table striped bordered hover>
+          <div className="table-responsive shadow-sm rounded-3">
+            <Table hover className="bg-white mb-0 align-middle">
               <thead className="table-dark">
                 <tr>
                   <th
-                    className={getClassNamesFor('code')}
-                    style={{ cursor: 'pointer', width: '120px' }}
+                    className={`${getClassNamesFor('code')} cursor-pointer`}
+                    style={{ cursor: 'pointer', minWidth: '100px' }}
                     onClick={() => requestSort('code')}
                   >
-                    {t('users.code')}
-                    {sortConfig.key === 'code' && (
-                      <span className="sort-icon ms-1">
-                        {sortConfig.direction === 'ascending' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    <div className="d-flex align-items-center justify-content-between">
+                      {t('users.code')}
+                      <i className={`bi bi-caret-${sortConfig.key === 'code' ? (sortConfig.direction === 'ascending' ? 'up-fill' : 'down-fill') : 'up-down'} ms-1 small text-muted`}></i>
+                    </div>
                   </th>
                   <th
-                    className={getClassNamesFor('fullName')}
-                    style={{ cursor: 'pointer', width: '200px' }}
+                    className={`${getClassNamesFor('fullName')} cursor-pointer`}
+                    style={{ cursor: 'pointer', minWidth: '180px' }}
                     onClick={() => requestSort('fullName')}
                   >
-                    {t('users.fullName')}
-                    {sortConfig.key === 'fullName' && (
-                      <span className="sort-icon ms-1">
-                        {sortConfig.direction === 'ascending' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    <div className="d-flex align-items-center justify-content-between">
+                      {t('users.fullName')}
+                      <i className={`bi bi-caret-${sortConfig.key === 'fullName' ? (sortConfig.direction === 'ascending' ? 'up-fill' : 'down-fill') : 'up-down'} ms-1 small text-muted`}></i>
+                    </div>
                   </th>
                   <th
-                    className={getClassNamesFor('level')}
-                    style={{ cursor: 'pointer', width: '150px' }}
+                    className={`${getClassNamesFor('level')} cursor-pointer`}
+                    style={{ cursor: 'pointer', minWidth: '130px' }}
                     onClick={() => requestSort('level')}
                   >
-                    {t('users.level')}
-                    {sortConfig.key === 'level' && (
-                      <span className="sort-icon ms-1">
-                        {sortConfig.direction === 'ascending' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    <div className="d-flex align-items-center justify-content-between">
+                      {t('users.level')}
+                      <i className={`bi bi-caret-${sortConfig.key === 'level' ? (sortConfig.direction === 'ascending' ? 'up-fill' : 'down-fill') : 'up-down'} ms-1 small text-muted`}></i>
+                    </div>
                   </th>
                   <th
-                    className={getClassNamesFor('church')}
-                    style={{ cursor: 'pointer', width: '200px' }}
+                    className={`${getClassNamesFor('church')} cursor-pointer`}
+                    style={{ cursor: 'pointer', minWidth: '150px' }}
                     onClick={() => requestSort('church')}
                   >
-                    {t('users.church')}
-                    {sortConfig.key === 'church' && (
-                      <span className="sort-icon ms-1">
-                        {sortConfig.direction === 'ascending' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    <div className="d-flex align-items-center justify-content-between">
+                      {t('users.church')}
+                      <i className={`bi bi-caret-${sortConfig.key === 'church' ? (sortConfig.direction === 'ascending' ? 'up-fill' : 'down-fill') : 'up-down'} ms-1 small text-muted`}></i>
+                    </div>
                   </th>
-                  <th width="250">{t('attendance.table.recentAttendance')}</th>
-                  <th width="120">{t('subjects.attendance')}</th>
-                  <th width="100">{t('common.actions')}</th>
+                  <th style={{ minWidth: '220px' }}>{t('attendance.table.recentAttendance')}</th>
+                  <th style={{ minWidth: '130px' }}>{t('subjects.attendance')}</th>
+                  <th style={{ minWidth: '100px' }}>{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -386,6 +445,7 @@ const AttendanceReport = () => {
 
                   // Helper to get level color
                   const getLevelColor = (level) => {
+                    if (!level) return 'var(--bs-gray-500)';
                     if (level.includes('حضانة')) return 'var(--level-kindergarten)';
                     if (level.includes('ابتدائى')) return 'var(--level-primary)';
                     if (level.includes('إعدادى')) return 'var(--level-secondary)';
@@ -395,46 +455,45 @@ const AttendanceReport = () => {
                   };
 
                   return (
-                    <tr key={student.code}>
-                      <td data-label={t('users.code')} className="fw-bold text-primary">{student.code}</td>
-                      <td data-label={t('users.fullName')}>{student.fullName}</td>
-                      <td data-label={t('users.level')}>
+                    <tr key={student.code} className="border-bottom">
+                      <td className="fw-bold text-primary">{student.code}</td>
+                      <td className="fw-semibold">{student.fullName}</td>
+                      <td>
                         <Badge style={{ backgroundColor: getLevelColor(student.level || '') }}>
                           {student.level}
                         </Badge>
                       </td>
-                      <td data-label={t('users.church')}>{student.church}</td>
-                      <td data-label={t('attendance.table.recentAttendance')}>
+                      <td className="text-muted small">{student.church}</td>
+                      <td>
                         {recentAttendance.length === 0 ? (
-                          <span className="text-muted">{t('common.noResults')}</span>
+                          <span className="text-muted small italic">{t('common.noResults')}</span>
                         ) : (
                           <div className="d-flex flex-column gap-1">
                             {recentAttendance.map((record, index) => (
-                              <div key={index} className="d-flex justify-content-between align-items-center">
-                                <small>{formatDisplayDate(record.date || record.dateTime)}</small>
+                              <div key={index} className="d-flex justify-content-between align-items-center bg-light p-1 rounded px-2 border-start border-2 border-primary">
+                                <small className="fw-bold" style={{ fontSize: '0.75rem' }}>{formatDisplayDate(record.date || record.dateTime)}</small>
                                 {getStatusBadge(record.status)}
                               </div>
                             ))}
                           </div>
                         )}
                       </td>
-                      <td data-label={t('subjects.attendance')}>
-                        <div className="d-flex align-items-center justify-content-end gap-2">
-                          <span className="badge bg-success" title={t('attendance.status.present')}>{stats.present}</span>
-                          <span className="badge bg-warning text-dark" title={t('attendance.status.late')}>{stats.late}</span>
-                          <span className="badge bg-danger" title={t('attendance.status.absent')}>{stats.absent}</span>
-                          <span className="badge bg-secondary" title={t('subjects.attendance')}>{stats.total}</span>
+                      <td>
+                        <div className="d-flex flex-wrap gap-1">
+                          <Badge bg="success" pill>{stats.present}</Badge>
+                          <Badge bg="warning" text="dark" pill>{stats.late}</Badge>
+                          <Badge bg="danger" pill>{stats.absent}</Badge>
+                          <Badge bg="secondary" pill>{stats.total}</Badge>
                         </div>
                       </td>
-                      <td data-label={t('common.actions')}>
+                      <td>
                         <Button
                           variant="outline-primary"
                           size="sm"
-                          className="w-100"
+                          className="rounded-pill px-3"
                           onClick={() => handleStudentClick(student)}
                         >
-                          <i className="bi bi-eye me-1"></i>
-                          {t('attendance.table.details')}
+                          <i className="bi bi-eye-fill"></i>
                         </Button>
                       </td>
                     </tr>
@@ -445,51 +504,47 @@ const AttendanceReport = () => {
           </div>
 
           {/* Pagination Controls */}
-          <div className="d-flex justify-content-between align-items-center mt-3">
-            <div className="text-muted small">
-              {t('common.actions')} {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, sortedStudents.length)} {t('common.noResults')} {sortedStudents.length} {t('common.actions')}
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
+            <div className="text-muted small fw-medium order-2 order-md-1">
+              {t('common.displaying')} <span className="text-dark fw-bold">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, sortedStudents.length)}</span> {t('common.of')} <span className="text-dark fw-bold">{sortedStudents.length}</span> {t('common.students')}
             </div>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-2 order-1 order-md-2">
               <Button
-                variant="outline-secondary"
+                variant="white"
                 size="sm"
+                className="border shadow-sm px-3 rounded-pill"
                 onClick={() => paginate(currentPage - 1)}
                 disabled={currentPage === 1}
               >
-                {t('common.back')}
+                <i className="bi bi-chevron-left me-1"></i> {t('common.previous')}
               </Button>
-              {Array.from({ length: Math.min(5, Math.ceil(sortedStudents.length / itemsPerPage)) }, (_, i) => {
-                // Logic to show a window of pages around current page
-                let pageNum;
-                const totalPages = Math.ceil(sortedStudents.length / itemsPerPage);
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
+              <div className="d-none d-md-flex gap-1">
+                {Array.from({ length: Math.ceil(sortedStudents.length / itemsPerPage) }, (_, i) => i + 1)
+                  .filter(num => num === 1 || num === Math.ceil(sortedStudents.length / itemsPerPage) || (num >= currentPage - 1 && num <= currentPage + 1))
+                  .map((pageNum, index, array) => (
+                    <React.Fragment key={pageNum}>
+                      {index > 0 && array[index - 1] !== pageNum - 1 && <span className="text-muted">...</span>}
+                      <Button
+                        variant={currentPage === pageNum ? "primary" : "white"}
+                        size="sm"
+                        className={`rounded-circle border-0 shadow-sm ${currentPage === pageNum ? '' : 'text-muted'}`}
+                        style={{ width: '32px', height: '32px', padding: '0' }}
+                        onClick={() => paginate(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    </React.Fragment>
+                  ))
                 }
-
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={currentPage === pageNum ? "primary" : "outline-secondary"}
-                    size="sm"
-                    onClick={() => paginate(pageNum)}
-                  >
-                    {pageNum}
-                  </Button>
-                )
-              })}
+              </div>
               <Button
-                variant="outline-secondary"
+                variant="white"
                 size="sm"
+                className="border shadow-sm px-3 rounded-pill"
                 onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === Math.ceil(sortedStudents.length / itemsPerPage)}
+                disabled={currentPage === Math.ceil(sortedStudents.length / itemsPerPage) || sortedStudents.length === 0}
               >
-                {t('common.actions')}
+                {t('common.next')} <i className="bi bi-chevron-right ms-1"></i>
               </Button>
             </div>
           </div>
@@ -502,56 +557,71 @@ const AttendanceReport = () => {
         onHide={() => setShowDetailsModal(false)}
         size="lg"
         centered
+        className="attendance-details-modal"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {t('attendance.table.details')} - {selectedStudent?.fullName}
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold">
+            <i className="bi bi-person-badge text-primary me-2"></i>
+            {t('attendance.table.details')}
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="pt-4">
           {selectedStudent && (
             <div>
-              <div className="row mb-4">
-                <div className="col-md-6">
-                  <strong>{t('users.code')}:</strong> {selectedStudent.code}
+              <div className="student-profile-summary p-4 rounded-4 bg-light mb-4 shadow-sm">
+                <div className="row g-4 align-items-center">
+                  <div className="col-auto">
+                    <div className="bg-white rounded-circle d-flex align-items-center justify-content-center border" style={{ width: '80px', height: '80px' }}>
+                      <i className="bi bi-person-fill display-4 text-primary opacity-75"></i>
+                    </div>
+                  </div>
+                  <div className="col">
+                    <h4 className="mb-0 fw-bold">{selectedStudent.fullName}</h4>
+                    <p className="text-muted mb-0">ID: {selectedStudent.code}</p>
+                    <Badge pill className="mt-2" style={{ backgroundColor: 'var(--bs-primary)' }}>{selectedStudent.level}</Badge>
+                  </div>
                 </div>
-                <div className="col-md-6">
-                  <strong>{t('users.level')}:</strong> {selectedStudent.level}
-                </div>
-                <div className="col-md-6 mt-2">
-                  <strong>{t('users.church')}:</strong> {selectedStudent.church}
-                </div>
-                <div className="col-md-6 mt-2">
-                  <strong>{t('subjects.attendance')}:</strong>
-                  <Badge bg="primary" className="ms-2">
-                    {selectedStudent.attendance?.length || 0}
-                  </Badge>
+                <div className="row mt-4 pt-3 border-top g-3">
+                  <div className="col-6 col-md-3">
+                    <small className="text-muted d-block text-uppercase small ls-1">{t('users.church')}</small>
+                    <span className="fw-bold">{selectedStudent.church}</span>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <small className="text-muted d-block text-uppercase small ls-1">Presence</small>
+                    <span className="fw-bold text-success">
+                      {Math.round((getAttendanceStats(selectedStudent).present / Math.max(1, getAttendanceStats(selectedStudent).total)) * 100)}%
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <h6>{t('attendance.table.fullLog')}:</h6>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h6 className="mb-0 fw-bold text-uppercase small text-muted letter-spacing-1">{t('attendance.table.fullLog')}</h6>
+              </div>
+
               {!selectedStudent.attendance || selectedStudent.attendance.length === 0 ? (
-                <div className="alert alert-info text-center">
-                  {t('attendance.table.noLog')}
+                <div className="text-center py-5 bg-white border rounded">
+                  <i className="bi bi-calendar-x display-4 text-muted opacity-25"></i>
+                  <p className="mt-3 text-muted">{t('attendance.table.noLog')}</p>
                 </div>
               ) : (
-                <div className="table-responsive">
-                  <Table striped bordered size="sm">
-                    <thead>
+                <div className="table-responsive rounded-3 border">
+                  <Table hover className="mb-0 table-sm">
+                    <thead className="table-light">
                       <tr>
-                        <th>{t('common.birthdate')}</th>
-                        <th>{t('common.actions')}</th>
-                        <th>{t('common.active')}</th>
-                        <th>Term</th>
+                        <th className="ps-3 py-2">{t('common.birthdate')}</th>
+                        <th className="py-2">{t('common.actions')}</th>
+                        <th className="py-2 text-center">{t('common.active')}</th>
+                        <th className="py-2 text-center">Term</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedStudent.attendance.map((record, index) => (
+                      {[...selectedStudent.attendance].reverse().map((record, index) => (
                         <tr key={index}>
-                          <td>{(record.date || record.dateTime || '').split(' ')[0] || 'N/A'}</td>
-                          <td>{(record.date || record.dateTime || '').split(' ')[1] || 'N/A'}</td>
-                          <td>{getStatusBadge(record.status)}</td>
-                          <td>{record.term ?? 'N/A'}</td>
+                          <td className="ps-3 py-2 fw-medium">{(record.date || record.dateTime || '').split(' ')[0] || 'N/A'}</td>
+                          <td className="py-2 text-muted">{(record.date || record.dateTime || '').split(' ')[1] || 'N/A'}</td>
+                          <td className="py-2 text-center">{getStatusBadge(record.status)}</td>
+                          <td className="py-2 text-center fw-bold text-primary">{record.term ?? 'N/A'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -561,8 +631,8 @@ const AttendanceReport = () => {
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
+        <Modal.Footer className="border-0 pt-0 pb-4 justify-content-center">
+          <Button variant="secondary" className="px-5 rounded-pill shadow-sm" onClick={() => setShowDetailsModal(false)}>
             {t('common.close')}
           </Button>
         </Modal.Footer>

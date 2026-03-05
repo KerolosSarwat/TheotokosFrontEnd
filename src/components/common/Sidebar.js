@@ -109,6 +109,19 @@ const Sidebar = () => {
             {t('nav.hymns')}
           </Nav.Link>
         </Nav.Item>
+        {hasPermission('settings', 'view') && (
+          <Nav.Item>
+            <Nav.Link
+              as={Link}
+              to="/settings"
+              active={location.pathname === '/settings'}
+              className="rounded-3 d-flex align-items-center py-2 px-3"
+            >
+              <i className="bi bi-gear me-2"></i>
+              {t('nav.settings')}
+            </Nav.Link>
+          </Nav.Item>
+        )}
       </Nav>
     </div>
   );

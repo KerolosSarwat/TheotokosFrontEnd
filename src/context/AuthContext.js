@@ -181,6 +181,15 @@ export const AuthProvider = ({ children }) => {
             return true;
         }
 
+        // Default permissions: all users can view settings unless explicitly revoked
+        if (module === 'settings' && action === 'view') {
+            // Check if it was explicitly set to false
+            if (user.permissions && user.permissions.settings && user.permissions.settings.view === false) {
+                return false;
+            }
+            return true;
+        }
+
         return false;
     };
 

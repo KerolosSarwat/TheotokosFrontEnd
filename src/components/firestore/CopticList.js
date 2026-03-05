@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
 import CreateCopticContent from './CreateCopticContent'
+import { truncateText } from '../../utils/constants';
 
 const CopticList = () => {
   const { t } = useTranslation();
@@ -113,7 +114,7 @@ const CopticList = () => {
               <td>{doc.id}</td>
               {keys.map(key => (
                 <td key={`${doc.id}-${key}`}>
-                  {renderCellValue(doc[key])}
+                  {renderCellValue(doc[key], key)}
                 </td>
               ))}
               <td>
@@ -143,10 +144,20 @@ const CopticList = () => {
     );
   };
 
-  const renderCellValue = (value) => {
+  const renderCellValue = (value, key) => {
     if (value === undefined || value === null) {
       return 'N/A';
-    } else if (typeof value === 'object') {
+    }
+
+    if (typeof value === 'string' && value.length > 50) {
+      return (
+        <span title={value}>
+          {truncateText(value, 50)}
+        </span>
+      );
+    }
+
+    if (typeof value === 'object') {
       return JSON.stringify(value);
     } else {
       return String(value);

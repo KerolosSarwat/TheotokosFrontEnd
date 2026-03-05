@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { USER_API, FIRESTORE_API } from './api';
+import { USER_API, FIRESTORE_API, CONFIG_API } from './api';
 import { auth } from '../firebase'; // Import auth to get token
 
 // Create Axios Instance
@@ -230,4 +230,27 @@ export const firestoreService = {
     }
   }
 
+};
+
+// Config service functions
+export const configService = {
+  getConfig: async () => {
+    try {
+      const response = await api.get(CONFIG_API.GET_CONFIG);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching config:', error);
+      throw error;
+    }
+  },
+
+  updateConfig: async (configData) => {
+    try {
+      const response = await api.patch(CONFIG_API.UPDATE_CONFIG, configData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating config:', error);
+      throw error;
+    }
+  }
 };

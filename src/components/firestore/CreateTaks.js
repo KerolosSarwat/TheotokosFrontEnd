@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Modal, Form, Button, Alert, Row, Col, Badge } from 'react-bootstrap';
+import { Modal, Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
+import { AGE_LEVEL_MAP } from '../../utils/constants';
 
 const CreateTaks = ({ show, onHide, onDocumentCreated, editDocument }) => {
   const isEditMode = !!editDocument;
@@ -16,7 +17,6 @@ const CreateTaks = ({ show, onHide, onDocumentCreated, editDocument }) => {
   });
 
   const [formData, setFormData] = useState(getInitialFormData());
-  const [ageLevelInput, setAgeLevelInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -47,24 +47,14 @@ const CreateTaks = ({ show, onHide, onDocumentCreated, editDocument }) => {
     }));
   };
 
-  const handleAgeLevelAdd = () => {
-    if (ageLevelInput && !isNaN(ageLevelInput)) {
-      const num = parseInt(ageLevelInput);
-      if (!formData.ageLevel.includes(num)) {
-        setFormData(prev => ({
-          ...prev,
-          ageLevel: [...prev.ageLevel, num].sort((a, b) => a - b)
-        }));
-        setAgeLevelInput('');
-      }
-    }
-  };
-
-  const handleAgeLevelRemove = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      ageLevel: prev.ageLevel.filter((_, i) => i !== index)
-    }));
+  const handleAgeLevelToggle = (level) => {
+    setFormData(prev => {
+      const isSelected = prev.ageLevel.includes(level);
+      const newLevels = isSelected
+        ? prev.ageLevel.filter(l => l !== level)
+        : [...prev.ageLevel, level].sort((a, b) => a - b);
+      return { ...prev, ageLevel: newLevels };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -169,36 +159,24 @@ const CreateTaks = ({ show, onHide, onDocumentCreated, editDocument }) => {
 
             <Form.Group as={Col} controlId="ageLevel">
               <Form.Label>Age Levels*</Form.Label>
-              <div className="d-flex">
-                <Form.Control
-                  type="number"
-                  value={ageLevelInput}
-                  onChange={(e) => setAgeLevelInput(e.target.value)}
-                  placeholder="Add age level"
-                  min="1"
-                />
-                <Button
-                  variant="outline-primary"
-                  onClick={handleAgeLevelAdd}
-                  className="ms-2"
-                  disabled={!ageLevelInput}
-                >
-                  Add
-                </Button>
-              </div>
-              <div className="mt-2">
-                {formData.ageLevel.map((age, index) => (
-                  <Badge key={index} pill bg="primary" className="me-2 fs-6">
-                    {age}
-                    <button
-                      type="button"
-                      className="ms-2 btn-close btn-close-white"
-                      aria-label="Remove"
-                      onClick={() => handleAgeLevelRemove(index)}
-                      style={{ fontSize: '0.5rem' }}
-                    />
-                  </Badge>
-                ))}
+              <div className="border rounded p-3 bg-light">
+                <Row xs={2} md={2} className="g-2">
+                  {Object.entries(AGE_LEVEL_MAP).map(([val, label]) => {
+                    const levelNum = parseInt(val);
+                    return (
+                      <Col key={val}>
+                        <Form.Check
+                          type="checkbox"
+                          id={`level-${val}`}
+                          label={label}
+                          checked={formData.ageLevel.includes(levelNum)}
+                          onChange={() => handleAgeLevelToggle(levelNum)}
+                          className="small fw-bold"
+                        />
+                      </Col>
+                    );
+                  })}
+                </Row>
               </div>
             </Form.Group>
           </Row>

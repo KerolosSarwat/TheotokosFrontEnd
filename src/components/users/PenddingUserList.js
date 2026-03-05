@@ -14,7 +14,7 @@ const UserList = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState({});
-  const [sortConfig] = useState({
+  const [sortConfig, setSortConfig] = useState({
     key: 'code',
     direction: 'ascending'
   });
@@ -209,13 +209,13 @@ const UserList = () => {
   };
 
   // Sort users
-  // const requestSort = (key) => {
-  //   let direction = 'ascending';
-  //   if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-  //     direction = 'descending';
-  //   }
-  //   setSortConfig({ key, direction });
-  // };
+  const requestSort = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const sortedUsers = useMemo(() => {
     const sortableUsers = Object.values(filteredUsers);
@@ -388,20 +388,55 @@ const UserList = () => {
             <Table striped bordered hover>
               <thead>
                 <tr>
-                  <th className={getClassNamesFor('code')}>
-                    {t('users.code')}
+                  <th
+                    className={`${getClassNamesFor('code')} cursor-pointer`}
+                    onClick={() => requestSort('code')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="d-flex align-items-center justify-content-between">
+                      {t('users.code')}
+                      <i className={`bi bi-caret-${sortConfig.key === 'code' ? (sortConfig.direction === 'ascending' ? 'up-fill' : 'down-fill') : 'up-down'} ms-1 small text-muted`}></i>
+                    </div>
                   </th>
-                  <th className={getClassNamesFor('fullName')}>
-                    {t('users.fullName')}
+                  <th
+                    className={`${getClassNamesFor('fullName')} cursor-pointer`}
+                    onClick={() => requestSort('fullName')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="d-flex align-items-center justify-content-between">
+                      {t('users.fullName')}
+                      <i className={`bi bi-caret-${sortConfig.key === 'fullName' ? (sortConfig.direction === 'ascending' ? 'up-fill' : 'down-fill') : 'up-down'} ms-1 small text-muted`}></i>
+                    </div>
                   </th>
-                  <th className={getClassNamesFor('level')}>
-                    {t('users.level')}
+                  <th
+                    className={`${getClassNamesFor('level')} cursor-pointer`}
+                    onClick={() => requestSort('level')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="d-flex align-items-center justify-content-between">
+                      {t('users.level')}
+                      <i className={`bi bi-caret-${sortConfig.key === 'level' ? (sortConfig.direction === 'ascending' ? 'up-fill' : 'down-fill') : 'up-down'} ms-1 small text-muted`}></i>
+                    </div>
                   </th>
-                  <th className={getClassNamesFor('phoneNumber')}>
-                    {t('users.phone')}
+                  <th
+                    className={`${getClassNamesFor('phoneNumber')} cursor-pointer`}
+                    onClick={() => requestSort('phoneNumber')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="d-flex align-items-center justify-content-between">
+                      {t('users.phone')}
+                      <i className={`bi bi-caret-${sortConfig.key === 'phoneNumber' ? (sortConfig.direction === 'ascending' ? 'up-fill' : 'down-fill') : 'up-down'} ms-1 small text-muted`}></i>
+                    </div>
                   </th>
-                  <th className={getClassNamesFor('church')}>
-                    {t('users.church')}
+                  <th
+                    className={`${getClassNamesFor('church')} cursor-pointer`}
+                    onClick={() => requestSort('church')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="d-flex align-items-center justify-content-between">
+                      {t('users.church')}
+                      <i className={`bi bi-caret-${sortConfig.key === 'church' ? (sortConfig.direction === 'ascending' ? 'up-fill' : 'down-fill') : 'up-down'} ms-1 small text-muted`}></i>
+                    </div>
                   </th>
                   <th>{t('common.actions')}</th>
                 </tr>
