@@ -122,7 +122,10 @@
             "totalStats": "Total (P/L/A)",
             "details": "Details",
             "noLog": "No attendance records for this student",
-            "fullLog": "Full Attendance Log"
+            "fullLog": "Full Attendance Log",
+            "date": "Date",
+            "status": "Status",
+            "term": "Term"
         },
         "status": {
             "present": "Present",

@@ -141,17 +141,37 @@ const AttendanceReport = () => {
   };
 
   const exportToExcel = () => {
-    // Prepare data for export
-    const dataForExport = sortedStudents.map(student => ({
-      [t('users.code')]: student.code || '',
-      [t('users.fullName')]: student.fullName || '',
-      [t('users.level')]: student.level || 'N/A',
-      [t('users.church')]: student.church || 'N/A',
-      [t('subjects.attendance')]: student.attendance?.length || 0,
-      [t('attendance.table.recentAttendance')]: student.attendance?.length > 0
-        ? formatExcelDate(student.attendance[0].date)
-        : t('common.noResults')
-    }));
+    const dataForExport = [];
+
+    sortedStudents.forEach(student => {
+      const attendance = student.attendance || [];
+
+      if (attendance.length === 0) {
+        // Include students with no attendance records
+        dataForExport.push({
+          [t('users.code')]: student.code || '',
+          [t('users.fullName')]: student.fullName || '',
+          [t('users.level')]: student.level || 'N/A',
+          [t('users.church')]: student.church || 'N/A',
+          [t('attendance.table.date')]: t('common.noResults'),
+          [t('attendance.table.status')]: 'N/A',
+          [t('attendance.table.term')]: 'N/A'
+        });
+      } else {
+        // Create a row for each attendance record
+        attendance.forEach(record => {
+          dataForExport.push({
+            [t('users.code')]: student.code || '',
+            [t('users.fullName')]: student.fullName || '',
+            [t('users.level')]: student.level || 'N/A',
+            [t('users.church')]: student.church || 'N/A',
+            [t('attendance.table.date')]: formatExcelDate(record.date || record.dateTime),
+            [t('attendance.table.status')]: record.status || 'N/A',
+            [t('attendance.table.term')]: record.term || 'N/A'
+          });
+        });
+      }
+    });
 
     // Create worksheet
     const ws = XLSX.utils.json_to_sheet(dataForExport);
