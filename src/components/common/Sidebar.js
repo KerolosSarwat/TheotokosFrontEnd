@@ -4,20 +4,27 @@ import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../../context/AuthContext'; // Import useAuth
 
-const Sidebar = () => {
+const Sidebar = ({ onClose }) => {
   const location = useLocation();
   const { t } = useTranslation();
   const { hasPermission } = useAuth(); // Get hasPermission
 
+  const handleLinkClick = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="sidebar-sticky pt-3 pb-5">
+    <div className="sidebar-sticky pt-3 pb-5 h-full">
       <Nav className="flex-column gap-1 px-2">
         <Nav.Item>
           <Nav.Link
             as={Link}
             to="/"
             active={location.pathname === '/'}
-            className="rounded-3 d-flex align-items-center py-2 px-3"
+            className="rounded-3 d-flex align-items-center py-2 px-3 no-underline transition-colors"
+            onClick={handleLinkClick}
           >
             <i className="bi bi-speedometer2 me-2"></i>
             {t('nav.dashboard')}
@@ -28,7 +35,8 @@ const Sidebar = () => {
             as={Link}
             to="/users"
             active={location.pathname.startsWith('/users')}
-            className="rounded-3 d-flex align-items-center py-2 px-3"
+            className="rounded-3 d-flex align-items-center py-2 px-3 no-underline transition-colors"
+            onClick={handleLinkClick}
           >
             <i className="bi bi-people me-2"></i>
             {t('nav.users')}
@@ -39,7 +47,8 @@ const Sidebar = () => {
             as={Link}
             to="/attendance"
             active={location.pathname.startsWith('/attendance')}
-            className="rounded-3 d-flex align-items-center py-2 px-3"
+            className="rounded-3 d-flex align-items-center py-2 px-3 no-underline transition-colors"
+            onClick={handleLinkClick}
           >
             <i className="bi bi-calendar-check me-2"></i>
             {t('nav.attendance')}
@@ -51,15 +60,14 @@ const Sidebar = () => {
               as={Link}
               to="/degrees"
               active={location.pathname === '/degrees'}
-              className="rounded-3 d-flex align-items-center py-2 px-3"
+              className="rounded-3 d-flex align-items-center py-2 px-3 no-underline transition-colors"
+              onClick={handleLinkClick}
             >
               <i className="bi bi-file-earmark-spreadsheet me-2"></i>
               {t('Bulk Degrees')}
             </Nav.Link>
           </Nav.Item>
         )}
-
-
 
         <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-2 text-muted text-uppercase fw-bold small">
           <span>{t('nav.firestore')}</span>
@@ -70,7 +78,8 @@ const Sidebar = () => {
             as={Link}
             to="/firestore/agbya"
             active={location.pathname.startsWith('/firestore/agbya')}
-            className="rounded-3 d-flex align-items-center py-2 px-3"
+            className="rounded-3 d-flex align-items-center py-2 px-3 no-underline transition-colors"
+            onClick={handleLinkClick}
           >
             <i className="bi bi-book me-2"></i>
             {t('nav.agbya')}
@@ -81,7 +90,8 @@ const Sidebar = () => {
             as={Link}
             to="/firestore/taks"
             active={location.pathname.startsWith('/firestore/taks')}
-            className="rounded-3 d-flex align-items-center py-2 px-3"
+            className="rounded-3 d-flex align-items-center py-2 px-3 no-underline transition-colors"
+            onClick={handleLinkClick}
           >
             <i className="bi bi-journal-text me-2"></i>
             {t('nav.taks')}
@@ -92,7 +102,8 @@ const Sidebar = () => {
             as={Link}
             to="/firestore/coptic"
             active={location.pathname.startsWith('/firestore/coptic')}
-            className="rounded-3 d-flex align-items-center py-2 px-3"
+            className="rounded-3 d-flex align-items-center py-2 px-3 no-underline transition-colors"
+            onClick={handleLinkClick}
           >
             <i className="bi bi-translate me-2"></i>
             {t('nav.coptic')}
@@ -103,7 +114,8 @@ const Sidebar = () => {
             as={Link}
             to="/firestore/hymns"
             active={location.pathname.startsWith('/firestore/hymns')}
-            className="rounded-3 d-flex align-items-center py-2 px-3"
+            className="rounded-3 d-flex align-items-center py-2 px-3 no-underline transition-colors"
+            onClick={handleLinkClick}
           >
             <i className="bi bi-music-note-list me-2"></i>
             {t('nav.hymns')}
@@ -115,7 +127,8 @@ const Sidebar = () => {
               as={Link}
               to="/settings"
               active={location.pathname === '/settings'}
-              className="rounded-3 d-flex align-items-center py-2 px-3"
+              className="rounded-3 d-flex align-items-center py-2 px-3 no-underline transition-colors"
+              onClick={handleLinkClick}
             >
               <i className="bi bi-gear me-2"></i>
               {t('nav.settings')}

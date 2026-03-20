@@ -398,40 +398,47 @@ const UserList = () => {
   if (error) {
     return <div className="alert alert-danger mt-3">{error}</div>;
   }
-
   return (
-    <div className="user-list">
-      <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 className="h2">{t('users.title')}</h1>
-        <div className="d-flex gap-2">
+    <div className="user-list space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center pt-3 pb-2 mb-3 border-b border-slate-200 dark:border-slate-800 gap-4">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white m-0 truncate">{t('users.title')}</h1>
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
           {hasPermission('degrees', 'edit') && (
             <Button
               variant="outline-primary"
               onClick={() => setShowUploadModal(true)}
-              className="d-flex align-items-center rounded-pill shadow-sm"
+              className="flex-1 md:flex-none flex items-center justify-center rounded-pill shadow-sm py-2 px-3"
             >
-              <i className="bi bi-upload me-1"></i> {t('users.bulkUpdate')}
+              <i className="bi bi-upload me-1"></i> 
+              <span className="hidden sm:inline">{t('users.bulkUpdate')}</span>
+              <span className="sm:hidden">Update</span>
             </Button>
           )}
           <Button
             variant="outline-success"
             onClick={exportToExcel}
-            className="d-flex align-items-center rounded-pill shadow-sm"
+            className="flex-1 md:flex-none flex items-center justify-center rounded-pill shadow-sm py-2 px-3"
           >
-            <i className="bi bi-file-earmark-excel me-1"></i> {t('users.exportExcel')}
+            <i className="bi bi-file-earmark-excel me-1"></i> 
+            <span className="hidden sm:inline">{t('users.exportExcel')}</span>
+            <span className="sm:hidden">Export</span>
           </Button>
           {selectedUserIds.size > 0 && (
             <Button
               variant="primary"
               onClick={() => setShowBulkModal(true)}
-              className="d-flex align-items-center rounded-pill shadow-sm"
+              className="flex-1 md:flex-none flex items-center justify-center rounded-pill shadow-sm py-2 px-3"
             >
-              <i className="bi bi-images me-1"></i> Download IDs ({selectedUserIds.size})
+              <i className="bi bi-images me-1"></i> 
+              <span className="hidden sm:inline">Download IDs ({selectedUserIds.size})</span>
+              <span className="sm:hidden">IDs ({selectedUserIds.size})</span>
             </Button>
           )}
           {hasPermission('users', 'edit') && (
-            <Link to="/users/new" className="btn btn-primary rounded-pill shadow-sm d-flex align-items-center">
-              <i className="bi bi-person-plus-fill me-1"></i> {t('nav.addUser')}
+            <Link to="/users/new" className="flex-1 md:flex-none btn btn-primary rounded-pill shadow-sm flex items-center justify-center py-2 px-3">
+              <i className="bi bi-person-plus-fill me-1"></i> 
+              <span className="hidden sm:inline">{t('nav.addUser')}</span>
+              <span className="sm:hidden">Add</span>
             </Link>
           )}
         </div>
