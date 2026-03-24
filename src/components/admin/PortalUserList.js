@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Modal, Form, Badge } from 'react-bootstrap';
 import { userService } from '../../services/services';
+import { useAuth } from '../../context/AuthContext';
 
 const PortalUserList = () => {
+    const { resetPassword } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -82,6 +84,22 @@ const PortalUserList = () => {
         }
     };
 
+    const handleResetPassword = async (user) => {
+        if (window.confirm(`Are you sure you want to send a password reset email to ${user.email}?`)) {
+            try {
+                const result = await resetPassword(user.email);
+                if (result.success) {
+                    alert(`Password reset email sent to ${user.email}`);
+                } else {
+                    alert(`Failed to send reset email: ${result.error}`);
+                }
+            } catch (error) {
+                console.error("Error sending reset email:", error);
+                alert("An error occurred while trying to send the reset email.");
+            }
+        }
+    };
+
     if (loading) return <div className="text-center mt-5"><div className="spinner-border"></div></div>;
 
     return (
@@ -128,6 +146,9 @@ const PortalUserList = () => {
                                         <td>
                                             <Button variant="outline-primary" size="sm" onClick={() => handleEdit(user)}>
                                                 <i className="bi bi-shield-lock"></i> Permissions
+                                            </Button>
+                                            <Button variant="outline-warning" size="sm" className="ms-2" onClick={() => handleResetPassword(user)}>
+                                                <i className="bi bi-key"></i> Reset Password
                                             </Button>
                                         </td>
                                     </tr>
