@@ -3,6 +3,8 @@ import { Card, Table, Alert, Form, InputGroup, Button, Badge } from 'react-boots
 import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
+import { Document, Paragraph, TextRun, Packer, Table as DocxTable, TableRow, TableCell, WidthType, AlignmentType } from 'docx';
+import { saveAs } from 'file-saver';
 import CreateHymns from './CreateHymns';
 import { AGE_LEVEL_MAP, truncateText } from '../../utils/constants';
 
@@ -14,6 +16,8 @@ const HymnsList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAgeLevel, setSelectedAgeLevel] = useState('');
+  const [selectedYearNumber, setSelectedYearNumber] = useState('');
   const [filteredDocuments, setFilteredDocuments] = useState([]);
 
   useEffect(() => {
@@ -39,18 +43,32 @@ const HymnsList = () => {
   }, [fetchDocuments]);
 
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredDocuments(documents);
-    } else {
-      const filtered = documents.filter(doc => {
+    let filtered = [...documents];
+
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(doc => {
         return Object.values(doc).some(value =>
           value && typeof value === 'string' &&
           value.toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
-      setFilteredDocuments(filtered);
     }
-  }, [searchTerm, documents]);
+
+    if (selectedAgeLevel !== '') {
+      filtered = filtered.filter(doc => {
+        if (!doc.ageLevel) return false;
+        return Array.isArray(doc.ageLevel) 
+          ? doc.ageLevel.includes(Number(selectedAgeLevel))
+          : doc.ageLevel === Number(selectedAgeLevel);
+      });
+    }
+
+    if (selectedYearNumber !== '') {
+      filtered = filtered.filter(doc => doc.yearNumber === Number(selectedYearNumber));
+    }
+
+    setFilteredDocuments(filtered);
+  }, [searchTerm, selectedAgeLevel, selectedYearNumber, documents]);
 
   const handleEdit = (doc) => {
     setEditDocument(doc);
@@ -72,6 +90,102 @@ const HymnsList = () => {
   const handleModalClose = () => {
     setShowModal(false);
     setEditDocument(null);
+  };
+
+  const exportFilteredToWord = async () => {
+    if (filteredDocuments.length === 0) {
+      alert(t('common.noResults'));
+      return;
+    }
+
+    const children = [];
+
+    // Title Paragraph
+    children.push(new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Filtered Hymns',
+          bold: true,
+          size: 28,
+        }),
+      ],
+      spacing: { after: 400 },
+      alignment: AlignmentType.CENTER
+    }));
+
+    filteredDocuments.forEach(doc => {
+      // Hymn Title
+      children.push(new Paragraph({
+        children: [
+          new TextRun({
+            text: doc.title || 'Untitled',
+            bold: true,
+            size: 24,
+          }),
+        ],
+        spacing: { before: 200, after: 200 },
+        alignment: AlignmentType.CENTER
+      }));
+
+      // Content Table
+      children.push(new DocxTable({
+        width: {
+          size: 100,
+          type: WidthType.PERCENTAGE,
+        },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 33, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({
+                    text: doc.copticArabicContent || '',
+                    alignment: AlignmentType.LEFT
+                  })
+                ],
+              }),
+              new TableCell({
+                width: { size: 34, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({
+                    text: doc.copticContent || '',
+                    alignment: AlignmentType.CENTER
+                  })
+                ],
+              }),
+              new TableCell({
+                width: { size: 33, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({
+                    text: doc.arabicContent || '',
+                    alignment: AlignmentType.RIGHT
+                  })
+                ],
+              }),
+            ],
+          }),
+        ],
+      }));
+
+      children.push(new Paragraph({ spacing: { after: 400 } }));
+    });
+
+    const wordDoc = new Document({
+      sections: [{
+        properties: {},
+        children: children,
+      }],
+    });
+
+    let filename = 'Hymns';
+    if (selectedAgeLevel) filename += `_Level_${selectedAgeLevel}`;
+    if (selectedYearNumber) filename += `_Year_${selectedYearNumber}`;
+    filename += '.docx';
+
+    Packer.toBlob(wordDoc).then(blob => {
+      saveAs(blob, filename);
+    });
   };
 
   if (loading) {
@@ -189,20 +303,54 @@ const HymnsList = () => {
       <Card className="mb-4">
         <Card.Body>
           <Form>
-            <InputGroup className="mb-3">
-              <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
-              <Form.Control
-                placeholder={t('common.search')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
-                  <i className="bi bi-x-lg"></i>
-                </Button>
-              )}
-            </InputGroup>
+            <div className="row g-3 mb-3">
+              <div className="col-md-4">
+                <InputGroup>
+                  <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
+                  <Form.Control
+                    placeholder={t('common.search')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  {searchTerm && (
+                    <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
+                      <i className="bi bi-x-lg"></i>
+                    </Button>
+                  )}
+                </InputGroup>
+              </div>
+              <div className="col-md-4">
+                <Form.Select
+                  value={selectedAgeLevel}
+                  onChange={(e) => setSelectedAgeLevel(e.target.value)}
+                >
+                  <option value="">{t('common.filterByLevel', 'All Levels')}</option>
+                  {Object.entries(AGE_LEVEL_MAP).map(([val, label]) => (
+                    <option key={val} value={val}>{label}</option>
+                  ))}
+                </Form.Select>
+              </div>
+              <div className="col-md-4">
+                <Form.Control
+                  type="number"
+                  placeholder="Filter by Year Number"
+                  value={selectedYearNumber}
+                  onChange={(e) => setSelectedYearNumber(e.target.value)}
+                />
+              </div>
+            </div>
           </Form>
+
+          <div className="d-flex align-items-center mt-3">
+            <Button
+              variant="success"
+              onClick={exportFilteredToWord}
+              disabled={filteredDocuments.length === 0}
+            >
+              <i className="bi bi-file-word me-2"></i>
+              Export Visible Rows to Word
+            </Button>
+          </div>
         </Card.Body>
       </Card>
 
