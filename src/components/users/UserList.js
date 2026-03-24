@@ -70,6 +70,11 @@ const UserList = () => {
   const [bulkSaint, setBulkSaint] = useState('');
   const [bulkLocation, setBulkLocation] = useState(''); // New state
 
+  // Export Degrees State
+  const [showExportDegreesModal, setShowExportDegreesModal] = useState(false);
+  const [exportDegreeLevel, setExportDegreeLevel] = useState('');
+  const [exportDegreeTerm, setExportDegreeTerm] = useState('firstTerm');
+
   // const componentRef = React.useRef();
 
   const handlePrint = () => {
@@ -238,6 +243,40 @@ const UserList = () => {
 
     // Export to Excel
     XLSX.writeFile(wb, fileName);
+  };
+
+  const handleExportDegrees = () => {
+    let usersToExport = Object.values(users);
+    if (exportDegreeLevel) {
+       usersToExport = usersToExport.filter(u => u.level === exportDegreeLevel);
+    }
+    
+    const dataForExport = usersToExport.map(user => {
+       const degreeData = user.degree?.[exportDegreeTerm] || {};
+       return {
+         [t('users.code')]: user.code || '',
+         [t('users.fullName')]: user.fullName || '',
+         [t('users.level')]: user.level || 'N/A',
+         [t('subjects.agbya')]: degreeData.agbya || 0,
+         [t('subjects.coptic')]: degreeData.coptic || 0,
+         [t('subjects.hymns')]: degreeData.hymns || 0,
+         [t('subjects.taks')]: degreeData.taks || 0,
+         [t('subjects.attendance')]: degreeData.attencance || 0,
+         [t('subjects.result')]: degreeData.total || 0,
+       };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(dataForExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Degrees");
+    const termNames = {
+      firstTerm: "First",
+      secondTerm: "Second",
+      thirdTerm: "Third"
+    };
+    const fileName = `degrees_${termNames[exportDegreeTerm]}_${exportDegreeLevel || 'all'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    setShowExportDegreesModal(false);
   };
 
   const handleFileUpload = (event) => {
@@ -422,6 +461,15 @@ const UserList = () => {
             <i className="bi bi-file-earmark-excel me-1"></i> 
             <span className="hidden sm:inline">{t('users.exportExcel')}</span>
             <span className="sm:hidden">Export</span>
+          </Button>
+          <Button
+            variant="outline-info"
+            onClick={() => setShowExportDegreesModal(true)}
+            className="flex-1 md:flex-none flex items-center justify-center rounded-pill shadow-sm py-2 px-3"
+          >
+            <i className="bi bi-mortarboard-fill me-1"></i> 
+            <span className="hidden sm:inline">{t('users.exportDegrees')}</span>
+            <span className="sm:hidden">Degrees</span>
           </Button>
           {selectedUserIds.size > 0 && (
             <Button
@@ -982,6 +1030,44 @@ const UserList = () => {
             handleBulkDownload();
           }}>
             <i className="bi bi-download me-2"></i> Start Download
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Export Degrees Modal */}
+      <Modal show={showExportDegreesModal} onHide={() => setShowExportDegreesModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title><i className="bi bi-mortarboard-fill me-2"></i>{t('users.exportTitles', 'Export Degree Information')}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>{t('common.filterByLevel', 'Filter by Level')}</Form.Label>
+              <Form.Select 
+                value={exportDegreeLevel} 
+                onChange={(e) => setExportDegreeLevel(e.target.value)}
+              >
+                <option value="">{t('common.all', 'All')}</option>
+                {ALL_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>{t('terms.title', 'Term')}</Form.Label>
+              <Form.Select 
+                value={exportDegreeTerm} 
+                onChange={(e) => setExportDegreeTerm(e.target.value)}
+              >
+                <option value="firstTerm">{t('terms.first')}</option>
+                <option value="secondTerm">{t('terms.second')}</option>
+                <option value="thirdTerm">{t('terms.third')}</option>
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowExportDegreesModal(false)}>{t('common.cancel')}</Button>
+          <Button variant="primary" onClick={handleExportDegrees}>
+            <i className="bi bi-download me-2"></i>{t('users.exportDegrees')}
           </Button>
         </Modal.Footer>
       </Modal>

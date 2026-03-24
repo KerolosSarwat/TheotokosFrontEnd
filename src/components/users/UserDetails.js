@@ -133,6 +133,16 @@ const UserDetails = () => {
                       )}
                     </td>
                   </tr>
+                  <tr>
+                    <th>{t('users.deacon')}:</th>
+                    <td>
+                      {user.deacon ? (
+                        <Badge bg="success">{t('common.yes') || 'Yes'}</Badge>
+                      ) : (
+                        <Badge bg="secondary">{t('common.no') || 'No'}</Badge>
+                      )}
+                    </td>
+                  </tr>
                 </tbody>
               </Table>
             </Col>

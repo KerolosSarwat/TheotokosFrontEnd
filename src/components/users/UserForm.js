@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { userService } from '../../services/services';
+import { userService, configService } from '../../services/services';
 
 const UserForm = () => {
   const { t } = useTranslation();
@@ -18,11 +18,12 @@ const UserForm = () => {
     gender: 'Male',
     birthdate: '',
     phoneNumber: '',
-    church: 'العذراء مريم و الشهيد أبانوب',
+    church: 'كنيسة العذراء مريم و الشهيد أبانوب النهيسى',
     level: 'حضانة',
     address: '',
     admin: false,
     active: false,
+    deacon: false,
     degree: {
       firstTerm: {
         agbya: 0,
@@ -54,6 +55,7 @@ const UserForm = () => {
   const [loading, setLoading] = useState(isEditMode);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [churches, setChurches] = useState([]);
 
   useEffect(() => {
     document.title = `${isEditMode ? t('users.edit') : t('users.new')} | Firebase Portal`;
@@ -66,6 +68,7 @@ const UserForm = () => {
           setLoading(true);
           const userData = await userService.getUserByCode(code, type);
           setFormData(userData);
+          // If the user's church is not in the fetched churches list, we can handle it later in fetchConfig or here
           setLoading(false);
         } catch (err) {
           console.log(err)
@@ -78,6 +81,54 @@ const UserForm = () => {
 
     fetchUser();
   }, [code, isEditMode, type]);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const config = await configService.getConfig();
+        if (config && config.churches) {
+          const churchList = Array.isArray(config.churches)
+            ? config.churches
+            : Object.values(config.churches);
+          setChurches(churchList);
+        } else {
+          // Fallback to initial hardcoded list if not in config
+          setChurches([
+            "كنيسة العذراء مريم و الشهيد أبانوب النهيسى",
+            "كنيسة العذراء مريم و الأنبا صموئيل المعترف",
+            "كنيسة الأنبا كاراس السائح",
+            "كنيسة الأنبا موسى الأسود",
+            "كنيسة القديس سمعان الخراز",
+            "كنيسة مارمرقس و مارلوقا الهضبة الوسطى",
+            "كنيسة العذراء مريم الهضبة العليا",
+            "أخرى"
+          ]);
+        }
+      } catch (err) {
+        console.error('Error fetching config:', err);
+        // Fallback on error
+        setChurches([
+          "كنيسة العذراء مريم و الشهيد أبانوب النهيسى",
+          "كنيسة العذراء مريم و الأنبا صموئيل المعترف",
+          "كنيسة الأنبا كاراس السائح",
+          "كنيسة الأنبا موسى الأسود",
+          "كنيسة القديس سمعان الخراز",
+          "كنيسة مارمرقس و مارلوقا الهضبة الوسطى",
+          "كنيسة العذراء مريم الهضبة العليا",
+          "أخرى"
+        ]);
+      }
+    };
+
+    fetchConfig();
+  }, []);
+
+  // Update churches list if current formData.church is not in it (important for edit mode)
+  useEffect(() => {
+    if (formData.church && !churches.includes(formData.church)) {
+      setChurches(prev => [...prev, formData.church]);
+    }
+  }, [formData.church, churches]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -231,12 +282,9 @@ const UserForm = () => {
                     name="church"
                     value={formData.church}
                     onChange={handleChange}>
-                    <option value="العذراء مريم و الشهيد أبانوب">العذراء مريم و الشهيد أبانوب</option>
-                    <option value="الأنبا كاراس السائح">الأنبا كاراس السائح</option>
-                    <option value="الأنبا موسى الأسود">الأنبا موسى الأسود</option>
-                    <option value="القديس سمعان الخراز">القديس سمعان الخراز</option>
-                    <option value="العذراء مريم و الأنبا صموئيل">العذراء مريم و الأنبا صموئيل</option>
-                    <option value="الأنبا شنودة الهضبة العليا">الأنبا شنودة الهضبة العليا</option>
+                    {churches.map((church, index) => (
+                      <option key={index} value={church}>{church}</option>
+                    ))}
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -251,6 +299,8 @@ const UserForm = () => {
                     value={formData.level}
                     onChange={handleChange}>
                     <option value="حضانة">حضانة</option>
+                    <option value="KG1">KG1</option>
+                    <option value="KG2">KG2</option>
                     <option value="أولى ابتدائى">أولى ابتدائى</option>
                     <option value="ثانية ابتدائى">ثانية ابتدائى</option>
                     <option value="ثالثة ابتدائى">ثالثة ابتدائى</option>
@@ -277,6 +327,13 @@ const UserForm = () => {
               </Col>
             </Row>
 
+            <Form.Check
+              type="checkbox"
+              label={t('users.deacon')}
+              name="deacon"
+              checked={formData.deacon || false}
+              onChange={handleChange}
+            />
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
@@ -293,6 +350,8 @@ const UserForm = () => {
                 checked={formData.admin || false}
                 onChange={handleChange}
               />
+
+
             </Form.Group>
 
 
