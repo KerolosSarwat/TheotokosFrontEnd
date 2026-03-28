@@ -24,12 +24,7 @@ const UserList = () => {
 
   // Dynamic levels from data
   const ALL_LEVELS = useMemo(() => {
-    const levels = new Set([
-      "حضانة",
-      "أولى ابتدائى", "ثانية ابتدائى", "ثالثة ابتدائى",
-      "رابعة ابتدائى", "خامسة ابتدائى", "سادسة ابتدائى",
-      "اعدادى", "ثانوى ", "جامعة أو خريج"
-    ]);
+    const levels = new Set([]);
     if (users) {
       Object.values(users).forEach(u => {
         if (u.level) levels.add(u.level);
@@ -248,22 +243,22 @@ const UserList = () => {
   const handleExportDegrees = () => {
     let usersToExport = Object.values(users);
     if (exportDegreeLevel) {
-       usersToExport = usersToExport.filter(u => u.level === exportDegreeLevel);
+      usersToExport = usersToExport.filter(u => u.level === exportDegreeLevel);
     }
-    
+
     const dataForExport = usersToExport.map(user => {
-       const degreeData = user.degree?.[exportDegreeTerm] || {};
-       return {
-         [t('users.code')]: user.code || '',
-         [t('users.fullName')]: user.fullName || '',
-         [t('users.level')]: user.level || 'N/A',
-         [t('subjects.agbya')]: degreeData.agbya || 0,
-         [t('subjects.coptic')]: degreeData.coptic || 0,
-         [t('subjects.hymns')]: degreeData.hymns || 0,
-         [t('subjects.taks')]: degreeData.taks || 0,
-         [t('subjects.attendance')]: degreeData.attencance || 0,
-         [t('subjects.result')]: degreeData.total || 0,
-       };
+      const degreeData = user.degree?.[exportDegreeTerm] || {};
+      return {
+        [t('users.code')]: user.code || '',
+        [t('users.fullName')]: user.fullName || '',
+        [t('users.level')]: user.level || 'N/A',
+        [t('subjects.agbya')]: degreeData.agbya || 0,
+        [t('subjects.coptic')]: degreeData.coptic || 0,
+        [t('subjects.hymns')]: degreeData.hymns || 0,
+        [t('subjects.taks')]: degreeData.taks || 0,
+        [t('subjects.attendance')]: degreeData.attencance || 0,
+        [t('subjects.result')]: degreeData.total || 0,
+      };
     });
 
     const ws = XLSX.utils.json_to_sheet(dataForExport);
@@ -448,7 +443,7 @@ const UserList = () => {
               onClick={() => setShowUploadModal(true)}
               className="flex-1 md:flex-none flex items-center justify-center rounded-pill shadow-sm py-2 px-3"
             >
-              <i className="bi bi-upload me-1"></i> 
+              <i className="bi bi-upload me-1"></i>
               <span className="hidden sm:inline">{t('users.bulkUpdate')}</span>
               <span className="sm:hidden">Update</span>
             </Button>
@@ -458,7 +453,7 @@ const UserList = () => {
             onClick={exportToExcel}
             className="flex-1 md:flex-none flex items-center justify-center rounded-pill shadow-sm py-2 px-3"
           >
-            <i className="bi bi-file-earmark-excel me-1"></i> 
+            <i className="bi bi-file-earmark-excel me-1"></i>
             <span className="hidden sm:inline">{t('users.exportExcel')}</span>
             <span className="sm:hidden">Export</span>
           </Button>
@@ -467,7 +462,7 @@ const UserList = () => {
             onClick={() => setShowExportDegreesModal(true)}
             className="flex-1 md:flex-none flex items-center justify-center rounded-pill shadow-sm py-2 px-3"
           >
-            <i className="bi bi-mortarboard-fill me-1"></i> 
+            <i className="bi bi-mortarboard-fill me-1"></i>
             <span className="hidden sm:inline">{t('users.exportDegrees')}</span>
             <span className="sm:hidden">Degrees</span>
           </Button>
@@ -477,14 +472,14 @@ const UserList = () => {
               onClick={() => setShowBulkModal(true)}
               className="flex-1 md:flex-none flex items-center justify-center rounded-pill shadow-sm py-2 px-3"
             >
-              <i className="bi bi-images me-1"></i> 
+              <i className="bi bi-images me-1"></i>
               <span className="hidden sm:inline">Download IDs ({selectedUserIds.size})</span>
               <span className="sm:hidden">IDs ({selectedUserIds.size})</span>
             </Button>
           )}
           {hasPermission('users', 'edit') && (
             <Link to="/users/new" className="flex-1 md:flex-none btn btn-primary rounded-pill shadow-sm flex items-center justify-center py-2 px-3">
-              <i className="bi bi-person-plus-fill me-1"></i> 
+              <i className="bi bi-person-plus-fill me-1"></i>
               <span className="hidden sm:inline">{t('nav.addUser')}</span>
               <span className="sm:hidden">Add</span>
             </Link>
@@ -1043,8 +1038,8 @@ const UserList = () => {
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>{t('common.filterByLevel', 'Filter by Level')}</Form.Label>
-              <Form.Select 
-                value={exportDegreeLevel} 
+              <Form.Select
+                value={exportDegreeLevel}
                 onChange={(e) => setExportDegreeLevel(e.target.value)}
               >
                 <option value="">{t('common.all', 'All')}</option>
@@ -1053,8 +1048,8 @@ const UserList = () => {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>{t('terms.title', 'Term')}</Form.Label>
-              <Form.Select 
-                value={exportDegreeTerm} 
+              <Form.Select
+                value={exportDegreeTerm}
                 onChange={(e) => setExportDegreeTerm(e.target.value)}
               >
                 <option value="firstTerm">{t('terms.first')}</option>
