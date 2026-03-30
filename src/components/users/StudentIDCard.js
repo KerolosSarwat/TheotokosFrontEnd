@@ -1,168 +1,153 @@
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
-// Styles for the ID Card
-const styles = {
-    cardContainer: {
-        width: '85.6mm', // Credit card width
-        height: '53.98mm', // Credit card height
-        position: 'relative',
-        backgroundColor: '#fff',
-        fontFamily: '"Cairo", sans-serif', // Assuming Cairo font is used, otherwise fallback
-        overflow: 'hidden',
-        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-        display: 'flex',
-        flexDirection: 'column',
-        direction: 'rtl',
-        border: '1px solid #ddd', // Light border for screen visibility
-        margin: '0 auto',
-    },
-    headerFooter: {
-        height: '10mm',
-        background: 'linear-gradient(90deg, #0d9488 0%, #84cc16 100%)', // Teal to Lime gradient
-        width: '100%',
-    },
-    content: {
-        flex: 1,
-        display: 'flex',
-        padding: '0 5mm',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'relative',
-    },
-    watermark: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        opacity: 0.1,
-        width: '50%',
-        zIndex: 0,
-        pointerEvents: 'none',
-    },
-    details: {
-        flex: 1,
-        marginRight: '5mm', // Space between QR and text
-        zIndex: 1,
-        textAlign: 'right',
-    },
-    name: {
-        color: '#3b82f6', // Blue color
-        fontWeight: 'bold',
-        fontSize: '12pt',
-        marginBottom: '2mm',
-    },
-    row: {
-        display: 'flex',
-        alignItems: 'center',
-        marginBottom: '1.5mm',
-    },
-    label: {
-        color: '#1e40af', // Darker blue for labels
-        fontWeight: 'bold',
-        fontSize: '10pt',
-        minWidth: '25mm',
-    },
-    value: {
-        color: '#000',
-        fontSize: '9pt',
-        fontWeight: '500',
-    },
-    qrContainer: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1,
-    },
-    code: {
-        marginTop: '1mm',
-        fontSize: '9pt',
-        fontWeight: 'bold',
-    }
-};
+// ⚠️ IMPORTANT: ALL styles must be inline JS objects — NO Tailwind / CSS classes.
+// html-to-image captures DOM snapshots WITHOUT loading external stylesheets.
+// Any class-based style will be invisible in exported PNG images.
 
-const StudentIDCard = ({ user, additionalInfo }) => {
-    // const { t } = useTranslation();
-
-    // Format data
-    // Assuming user.fullName, user.level, user.church are available
+const StudentIDCard = ({ user, additionalInfo, designConfig = {} }) => {
+    const gradient = `linear-gradient(90deg, ${designConfig.headerBgStart || '#0d9488'} 0%, ${designConfig.headerBgEnd || '#84cc16'} 100%)`;
 
     return (
-        <div className="id-card" style={styles.cardContainer}>
-            <div style={styles.headerFooter}></div>
+        <div
+            className="id-card"
+            style={{
+                width: '85.6mm',
+                height: '53.98mm',
+                position: 'relative',
+                backgroundColor: designConfig.cardBg || '#ffffff',
+                fontFamily: '"Cairo", "Segoe UI", sans-serif',
+                direction: 'rtl',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                border: '1px solid #d1d5db',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                boxSizing: 'border-box',
+            }}
+        >
+            {/* Background Image Layer */}
+            {designConfig.bgImageUrl && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundImage: `url(${designConfig.bgImageUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        opacity: designConfig.bgImageOpacity ?? 0.1,
+                        pointerEvents: 'none',
+                        zIndex: 0,
+                    }}
+                />
+            )}
 
-            <div style={styles.content}>
-                {/* Helper image for watermark - simplistic placeholder if no actual image asset specifically for watermark */}
-                {/* <img src="/logo.png" style={styles.watermark} alt="" /> */}
+            {/* Header Bar */}
+            <div style={{ height: '10mm', background: gradient, width: '100%', flexShrink: 0, position: 'relative', zIndex: 1 }} />
 
-                <div style={styles.details}>
-                    <div style={styles.name}>{user.fullName}</div>
-
-                    <div style={styles.row}>
-                        <span style={styles.label}>المرحلة</span>
-                        <span style={styles.value}>{user.level}</span>
+            {/* Content Area */}
+            <div
+                style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0 4mm',
+                    position: 'relative',
+                    zIndex: 1,
+                    overflow: 'hidden',
+                }}
+            >
+                {/* Text Details (right side in RTL) */}
+                <div style={{ flex: 1, textAlign: 'right', overflow: 'hidden' }}>
+                    {/* Student Name */}
+                    <div
+                        style={{
+                            color: designConfig.primaryText || '#3b82f6',
+                            fontWeight: 'bold',
+                            fontSize: '11pt',
+                            marginBottom: '1.5mm',
+                            lineHeight: 1.2,
+                        }}
+                    >
+                        {user.fullName}
                     </div>
 
-                    {(additionalInfo?.location) && (
-                        <div style={styles.row}>
-                            <span style={styles.label}>مكان الفصل</span>
-                            <span style={styles.value} dir="ltr">{additionalInfo.location}</span>
-                        </div>
-                    )}
-                    {(additionalInfo?.time) && (
-                        <div style={styles.row}>
-                            <span style={styles.label}>الميعاد</span>
-                            <span style={styles.value} dir="ltr">{additionalInfo.time}</span>
+                    {/* Level Row */}
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1mm' }}>
+                        <span style={{ color: designConfig.labelColor || '#1e40af', fontWeight: 'bold', fontSize: '9pt', minWidth: '22mm', flexShrink: 0 }}>المرحلة</span>
+                        <span style={{ color: designConfig.valueColor || '#111827', fontSize: '8.5pt', fontWeight: '500' }}>{user.level}</span>
+                    </div>
+
+                    {/* Location Row */}
+                    {additionalInfo?.location && (
+                        <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '1mm' }}>
+                            <span style={{ color: designConfig.labelColor || '#1e40af', fontWeight: 'bold', fontSize: '9pt', minWidth: '22mm', flexShrink: 0 }}>مكان الفصل</span>
+                            <span dir="auto" style={{ color: designConfig.valueColor || '#111827', fontSize: '8.5pt', fontWeight: '500', lineHeight: 1.3 }}>{additionalInfo.location}</span>
                         </div>
                     )}
 
-                    {(additionalInfo?.saint) && (
-                        <div style={styles.row}>
-                            <span style={styles.label}>شفيع الفصل</span>
-                            <span style={styles.value}>{additionalInfo.saint}</span>
+                    {/* Time Row */}
+                    {additionalInfo?.time && (
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1mm' }}>
+                            <span style={{ color: designConfig.labelColor || '#1e40af', fontWeight: 'bold', fontSize: '9pt', minWidth: '22mm', flexShrink: 0 }}>الميعاد</span>
+                            <span dir="ltr" style={{ color: designConfig.valueColor || '#111827', fontSize: '8.5pt', fontWeight: '500' }}>{additionalInfo.time}</span>
+                        </div>
+                    )}
+
+                    {/* Saint Row */}
+                    {additionalInfo?.saint && (
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1mm' }}>
+                            <span style={{ color: designConfig.labelColor || '#1e40af', fontWeight: 'bold', fontSize: '9pt', minWidth: '22mm', flexShrink: 0 }}>شفيع الفصل</span>
+                            <span style={{ color: designConfig.valueColor || '#111827', fontSize: '8.5pt', fontWeight: '500' }}>{additionalInfo.saint}</span>
                         </div>
                     )}
                 </div>
 
-                <div style={styles.qrContainer}>
+                {/* QR Code (left side in RTL) */}
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: '3mm',
+                        backgroundColor: 'rgba(255,255,255,0.7)',
+                        padding: '2mm',
+                        borderRadius: '2mm',
+                        flexShrink: 0,
+                    }}
+                >
                     <QRCodeSVG
-                        value={user.code || "0000"}
-                        size={80}
-                        level={"H"}
+                        value={user.code || '0000'}
+                        size={75}
+                        level="H"
+                        bgColor="rgba(255,255,255,0)"
                     />
-                    <span style={styles.code}>{user.code}</span>
+                    <span style={{ marginTop: '1mm', fontSize: '8pt', fontWeight: 'bold', color: '#111827', letterSpacing: '0.5px' }}>
+                        {user.code}
+                    </span>
                 </div>
             </div>
 
-            <div style={styles.headerFooter}></div>
+            {/* Footer Bar */}
+            <div style={{ height: '10mm', background: gradient, width: '100%', flexShrink: 0, position: 'relative', zIndex: 1 }} />
 
-            {/* Print specific styles to hide browser UI */}
+            {/* Print styles — only affect browser print, not html-to-image */}
             <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #print-section, #print-section * {
-            visibility: visible;
-          }
-          #print-section {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: white; /* Ensure background is white for printing */
-          }
-          .id-card {
-             border: none !important; /* Remove border for print if desired */
-             box-shadow: none !important;
-          }
-        }
-      `}</style>
+                @media print {
+                    body * { visibility: hidden; }
+                    #print-section, #print-section * { visibility: visible; }
+                    #print-section {
+                        position: absolute; left: 0; top: 0;
+                        width: 100%; height: 100%;
+                        display: flex; align-items: center; justify-content: center;
+                        background-color: white;
+                    }
+                    .id-card { border: none !important; box-shadow: none !important; }
+                }
+            `}</style>
         </div>
     );
 };

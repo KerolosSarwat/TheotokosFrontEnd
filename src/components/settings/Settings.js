@@ -121,6 +121,16 @@ const Settings = () => {
         }));
     };
 
+    const handleCardDesignChange = (field, value) => {
+        setConfig(prev => ({
+            ...prev,
+            cardDesign: {
+                ...prev.cardDesign,
+                [field]: value
+            }
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -257,6 +267,107 @@ const Settings = () => {
                                         {index < 2 && <hr className="mt-4" />}
                                     </div>
                                 ))}
+                            </Card.Body>
+                        </Card>
+                    </Tab>
+                    <Tab eventKey="cardDesign" title="Card Design">
+                        <Card className="shadow-sm border-0">
+                            <Card.Body>
+                                <Card.Title className="mb-4">Student ID Card Design</Card.Title>
+                                <Row className="g-3">
+                                    <Col md={4}>
+                                        <Form.Group controlId="cardDesign-headerBgStart">
+                                            <Form.Label>Header/Footer Gradient Start</Form.Label>
+                                            <Form.Control
+                                                type="color"
+                                                value={config?.cardDesign?.headerBgStart || '#0d9488'}
+                                                onChange={(e) => handleCardDesignChange('headerBgStart', e.target.value)}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="cardDesign-headerBgEnd">
+                                            <Form.Label>Header/Footer Gradient End</Form.Label>
+                                            <Form.Control
+                                                type="color"
+                                                value={config?.cardDesign?.headerBgEnd || '#84cc16'}
+                                                onChange={(e) => handleCardDesignChange('headerBgEnd', e.target.value)}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="cardDesign-cardBg">
+                                            <Form.Label>Card Background</Form.Label>
+                                            <Form.Control
+                                                type="color"
+                                                value={config?.cardDesign?.cardBg || '#ffffff'}
+                                                onChange={(e) => handleCardDesignChange('cardBg', e.target.value)}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="cardDesign-primaryText">
+                                            <Form.Label>Name Text Color</Form.Label>
+                                            <Form.Control
+                                                type="color"
+                                                value={config?.cardDesign?.primaryText || '#3b82f6'}
+                                                onChange={(e) => handleCardDesignChange('primaryText', e.target.value)}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="cardDesign-labelColor">
+                                            <Form.Label>Label Text Color</Form.Label>
+                                            <Form.Control
+                                                type="color"
+                                                value={config?.cardDesign?.labelColor || '#1e40af'}
+                                                onChange={(e) => handleCardDesignChange('labelColor', e.target.value)}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="cardDesign-valueColor">
+                                            <Form.Label>Value Text Color</Form.Label>
+                                            <Form.Control
+                                                type="color"
+                                                value={config?.cardDesign?.valueColor || '#000000'}
+                                                onChange={(e) => handleCardDesignChange('valueColor', e.target.value)}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12}>
+                                        <Form.Group controlId="cardDesign-bgImageUrl">
+                                            <Form.Label>Background Image URL (Optional)</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="https://example.com/image.png"
+                                                value={config?.cardDesign?.bgImageUrl || ''}
+                                                onChange={(e) => handleCardDesignChange('bgImageUrl', e.target.value)}
+                                                disabled={!canEdit}
+                                            />
+                                            <Form.Text className="text-muted">Requires a valid full URL. The image will be stretched to cover the entire card.</Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12}>
+                                        <Form.Group controlId="cardDesign-bgImageOpacity">
+                                            <Form.Label>Background Image Opacity ({config?.cardDesign?.bgImageOpacity || 0.1})</Form.Label>
+                                            <Form.Range
+                                                min={0.01}
+                                                max={1}
+                                                step={0.01}
+                                                value={config?.cardDesign?.bgImageOpacity || 0.1}
+                                                onChange={(e) => handleCardDesignChange('bgImageOpacity', parseFloat(e.target.value))}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
                             </Card.Body>
                         </Card>
                     </Tab>

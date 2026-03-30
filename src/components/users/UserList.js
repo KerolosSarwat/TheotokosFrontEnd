@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { userService } from '../../services/services';
+import { userService, configService } from '../../services/services';
 import { Table, Button, Card, Form, InputGroup, Modal, Badge, Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,7 @@ const UserList = () => {
   const [users, setUsers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [systemConfig, setSystemConfig] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevels, setSelectedLevels] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState({});
@@ -115,77 +116,62 @@ const UserList = () => {
     }
   };
 
+  const [bulkDownloading, setBulkDownloading] = useState(false);
+
+  // Utility: wait for a given number of ms (lets the browser finish painting)
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const handleBulkDownload = async () => {
     if (selectedUserIds.size === 0) return;
 
-    setLoading(true); // Re-use main loading or add specific one
+    setBulkDownloading(true);
     const zip = new JSZip();
 
-    // We need a hidden container to render items temporarily
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    document.body.appendChild(container);
+    // Give React one tick + a paint frame to render the off-screen cards
+    await sleep(300);
 
-    // Temporary root for React to render into (if we were using ReactDOM.render)
-    // But since we are in a functional component, we might not easily render React components to a string synchronously with full styles involved for html-to-image
-    // A common workaround is to render them one by one in the visible modal or a hidden div that we assume behaves like the modal
-
-    // STRATEGY: 
-    // Iterate through selected users.
-    // For each user, we need to generate the ID Card HTML. 
-    // Since `StudentIDCard` is a React component, we can use a trick:
-    // We can just reuse the existing `StudentIDCard` component but mount it into a DOM node.
-    // However, mounting React components programmatically needs `createRoot` or similar.
-    // Simpler approach: 
-    // We will loop through the selected IDs, find the user object.
-    // We will use the existing `print-section` in the modal if strictly needed, BUT checking if we can just render components to static markup is harder with styles.
-    // Better: Create a hidden area in the JSX that renders ALL selected cards, wait for them to mount, then snap them? 
-    // No, that might be too heavy.
-
-    // Better approach for bulk: Loop sequentially.
-    // 1. Set a "bulkProcessing" state.
-    // 2. Render a hidden div in the main return that maps through `selectedUserIds` and renders `StudentIDCard` for each.
-    // 3. Use `useEffect` to detect when they are rendered? Or just use a delay?
+    const codes = Array.from(selectedUserIds);
 
     try {
-      // Alternative: Just render one card at a time in the background?
-      // Let's try rendering ALL selected cards in a hidden container in the JSX (see below return)
-      // We will assign them unique IDs like `bulk-card-${code}`
-
-      const promises = Array.from(selectedUserIds).map(async (code) => {
+      // Capture SEQUENTIALLY — parallel capture races the browser paint and produces blanks
+      for (const code of codes) {
         const user = users[code] || Object.values(users).find(u => u.code === code);
-        if (!user) return null;
+        if (!user) continue;
 
-        // We need to find the DOM element. 
-        // We will make sure they are rendered in the DOM.
         const el = document.getElementById(`bulk-card-${code}`);
-        if (!el) return null;
+        if (!el) { console.warn(`Element bulk-card-${code} not found`); continue; }
 
         try {
-          const blob = await htmlToImage.toBlob(el, { backgroundColor: 'white' });
+          // toBlob twice — first call primes the image cache (cross-origin images), second captures cleanly
+          await htmlToImage.toBlob(el, { skipFonts: false });
+          await sleep(80);
+          const blob = await htmlToImage.toBlob(el, {
+            backgroundColor: '#ffffff',
+            pixelRatio: 3,
+            useCORS: true,
+            skipFonts: false,
+            style: { overflow: 'hidden' },
+          });
           if (blob) {
             zip.file(`${user.fullName}_${code}.png`, blob);
           }
         } catch (err) {
-          console.error(`Failed to generate ID for ${code}`, err);
+          console.error(`Failed to generate ID for ${code}:`, err);
         }
-      });
 
-      await Promise.all(promises);
+        // Small gap between cards so the browser can breathe
+        await sleep(50);
+      }
 
-      const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, "Student_IDs.zip");
-
-      setSelectedUserIds(new Set()); // Create logic to clear selection
+      const content = await zip.generateAsync({ type: 'blob' });
+      saveAs(content, 'Student_IDs.zip');
+      setSelectedUserIds(new Set());
 
     } catch (error) {
-      console.error("Bulk download failed", error);
-      alert("Failed to generate bulk IDs");
+      console.error('Bulk download failed', error);
+      alert('Failed to generate bulk IDs');
     } finally {
-      setLoading(false);
-      document.body.removeChild(container);
+      setBulkDownloading(false);
     }
   };
 
@@ -198,21 +184,25 @@ const UserList = () => {
   }, [searchTerm]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await userService.getAllUsers();
-        setUsers(data);
-        setFilteredUsers(data);
+        const [usersData, configData] = await Promise.all([
+          userService.getAllUsers(),
+          configService.getConfig()
+        ]);
+        setUsers(usersData);
+        setSystemConfig(configData);
+        setFilteredUsers(usersData);
         setLoading(false);
       } catch (err) {
-        setError('Error fetching users. Please try again later.');
+        setError('Error fetching data. Please try again later.');
         setLoading(false);
-        console.error('Error fetching users:', err);
+        console.error('Error fetching data:', err);
       }
     };
 
-    fetchUsers();
+    fetchData();
   }, []);
 
   const exportToExcel = () => {
@@ -963,6 +953,7 @@ const UserList = () => {
                 <div id="print-section">
                   <StudentIDCard
                     user={selectedIDUser}
+                    designConfig={systemConfig?.cardDesign}
                     additionalInfo={{
                       time: cardTime,
                       saint: cardSaint,
@@ -1019,15 +1010,36 @@ const UserList = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowBulkModal(false)}>Cancel</Button>
-          <Button variant="primary" onClick={() => {
+          <Button variant="secondary" onClick={() => setShowBulkModal(false)} disabled={bulkDownloading}>Cancel</Button>
+          <Button variant="primary" disabled={bulkDownloading} onClick={() => {
             setShowBulkModal(false);
             handleBulkDownload();
           }}>
-            <i className="bi bi-download me-2"></i> Start Download
+            {bulkDownloading ? (
+              <><span className="spinner-border spinner-border-sm me-2" role="status" />{`Processing...`}</>
+            ) : (
+              <><i className="bi bi-download me-2"></i>Start Download</>
+            )}
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Global busy overlay during bulk export */}
+      {bulkDownloading && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            backgroundColor: 'rgba(0,0,0,0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <div className="bg-white rounded-3 p-4 text-center shadow-lg" style={{ minWidth: '260px' }}>
+            <div className="spinner-border text-primary mb-3" role="status" />
+            <p className="mb-0 fw-semibold">Generating ID cards…</p>
+            <small className="text-muted">Please wait, do not close this tab.</small>
+          </div>
+        </div>
+      )}
 
       {/* Export Degrees Modal */}
       <Modal show={showExportDegreesModal} onHide={() => setShowExportDegreesModal(false)} centered>
@@ -1075,20 +1087,42 @@ const UserList = () => {
           setSelectedDegreeUser(null);
         }}
         userCode={selectedDegreeUser} />
-      {/* We use absolute positioning off-screen with opacity 1 to ensure full rendering consistency */}
-      <div style={{ position: 'absolute', left: '-5000px', top: 0, zIndex: -1000, width: '1000px', backgroundColor: 'white' }}>
+      {/*
+        Off-screen render zone for bulk ID capture.
+        IMPORTANT:
+          - position: fixed at left:-9999px keeps it off-screen but STILL in the browser layout/paint pipeline.
+            (position:absolute with a huge negative left + zIndex:-1000 can cause the browser to skip painting it)
+          - visibility: visible + opacity: 1 ensure the browser fully paints every pixel.
+          - width/height must be explicit so html-to-image gets correct dimensions.
+      */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: '-9999px',
+          top: '20px',
+          zIndex: -1,
+          pointerEvents: 'none',
+          backgroundColor: 'white',
+        }}
+      >
         {Array.from(selectedUserIds).map(code => {
           const user = users[code] || Object.values(users).find(u => u.code === code);
           if (!user) return null;
 
           return (
-            <div key={`bulk-${code}`} id={`bulk-card-${code}`} style={{ display: 'inline-block', margin: '20px', backgroundColor: 'white' }}>
+            <div
+              key={`bulk-${code}`}
+              id={`bulk-card-${code}`}
+              style={{ display: 'block', marginBottom: '20px' }}
+            >
               <StudentIDCard
                 user={user}
+                designConfig={systemConfig?.cardDesign}
                 additionalInfo={{
                   time: bulkTime,
-                  location: bulkLocation || user.church, // Use bulk override or user specific
-                  saint: bulkSaint
+                  location: bulkLocation || user.church,
+                  saint: bulkSaint,
                 }}
               />
             </div>
