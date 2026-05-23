@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Alert, Form, InputGroup, Button, Badge } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, Table, Alert, Form, InputGroup, Button, Badge, Dropdown, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
@@ -17,7 +17,19 @@ const TaksList = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredDocuments, setFilteredDocuments] = useState([]);
-  const [selectedAgeLevel] = useState(null);
+  const [selectedLevels, setSelectedLevels] = useState([]);
+  const [selectedYear, setSelectedYear] = useState('');
+
+  // Extract unique yearNumbers from data
+  const availableYears = React.useMemo(() => {
+    const years = new Set();
+    documents.forEach(doc => {
+      if (doc.yearNumber !== undefined && doc.yearNumber !== null) {
+        years.add(doc.yearNumber);
+      }
+    });
+    return Array.from(years).sort((a, b) => a - b);
+  }, [documents]);
 
   useEffect(() => {
     document.title = `${t('firestore.taksTitle')} | Firebase Portal`;
@@ -42,10 +54,11 @@ const TaksList = () => {
   }, [fetchDocuments]);
 
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredDocuments(documents);
-    } else {
-      const filtered = documents.filter(doc => {
+    let result = documents;
+
+    // 1. Text Search
+    if (searchTerm.trim() !== '') {
+      result = result.filter(doc => {
         return Object.values(doc).some(value => {
           if (value === null || value === undefined) return false;
           if (typeof value === 'object') {
@@ -54,9 +67,26 @@ const TaksList = () => {
           return String(value).includes(searchTerm);
         });
       });
-      setFilteredDocuments(filtered);
     }
-  }, [searchTerm, documents]);
+
+    // 2. Level Filter
+    if (selectedLevels.length > 0) {
+      result = result.filter(doc => {
+        if (doc.ageLevel === undefined || doc.ageLevel === null) return false;
+        const levels = Array.isArray(doc.ageLevel) ? doc.ageLevel : [doc.ageLevel];
+        return levels.some(level => selectedLevels.includes(level));
+      });
+    }
+
+    // 3. Year Filter
+    if (selectedYear !== '') {
+      result = result.filter(doc =>
+        doc.yearNumber !== undefined && doc.yearNumber === Number(selectedYear)
+      );
+    }
+
+    setFilteredDocuments(result);
+  }, [searchTerm, documents, selectedLevels, selectedYear]);
 
   const handleEdit = (doc) => {
     setEditDocument(doc);
@@ -82,9 +112,6 @@ const TaksList = () => {
 
   const exportFilteredToWord = async () => {
     let docsToExport = filteredDocuments;
-    if (selectedAgeLevel) {
-      docsToExport = filteredDocuments.filter(doc => doc.ageLevel === selectedAgeLevel);
-    }
 
     if (docsToExport.length === 0) {
       alert(t('common.noResults'));
@@ -98,8 +125,8 @@ const TaksList = () => {
           new Paragraph({
             children: [
               new TextRun({
-                text: selectedAgeLevel
-                  ? `Taks Documents for Age Level: ${selectedAgeLevel}`
+                text: selectedLevels.length > 0
+                  ? `Taks Documents for Age Level: ${selectedLevels.map(l => AGE_LEVEL_MAP[l] || l).join(', ')}`
                   : 'All Filtered Taks Documents',
                 bold: true,
                 size: 28,
@@ -133,7 +160,7 @@ const TaksList = () => {
     });
 
     let filename = 'Taks_Documents';
-    if (selectedAgeLevel) filename += `_AgeLevel_${selectedAgeLevel}`;
+    if (selectedLevels.length > 0) filename += `_Levels_${selectedLevels.join('-')}`;
     if (searchTerm) filename += `_Search_${searchTerm.substring(0, 10)}`;
     filename += '.docx';
 
@@ -258,19 +285,71 @@ const TaksList = () => {
       <Card className="mb-4">
         <Card.Body>
           <Form>
-            <InputGroup className="mb-3">
-              <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
-              <Form.Control
-                placeholder={t('common.search')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
-                  <i className="bi bi-x-lg"></i>
-                </Button>
-              )}
-            </InputGroup>
+            <Row className="g-3">
+              <Col md={4}>
+                <InputGroup>
+                  <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
+                  <Form.Control
+                    placeholder={t('common.search')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  {searchTerm && (
+                    <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
+                      <i className="bi bi-x-lg"></i>
+                    </Button>
+                  )}
+                </InputGroup>
+              </Col>
+              <Col md={4}>
+                <Dropdown autoClose="outside" className="w-100">
+                  <Dropdown.Toggle variant="outline-secondary" className="w-100 text-start d-flex justify-content-between align-items-center">
+                    <span>{selectedLevels.length > 0 ? `${selectedLevels.length} ${t('common.students')}` : t('common.filterByLevel')}</span>
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className="w-100 p-2" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    <div className="px-2 pb-2">
+                      <Form.Check
+                        type="checkbox"
+                        id="selectAllLevelsTaks"
+                        label={t('common.selectAll')}
+                        checked={selectedLevels.length === Object.keys(AGE_LEVEL_MAP).length}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedLevels(Object.keys(AGE_LEVEL_MAP).map(Number));
+                          else setSelectedLevels([]);
+                        }}
+                      />
+                    </div>
+                    <Dropdown.Divider />
+                    {Object.entries(AGE_LEVEL_MAP).map(([val, label]) => (
+                      <div key={val} className="px-2 py-1">
+                        <Form.Check
+                          type="checkbox"
+                          id={`taks-level-${val}`}
+                          label={label}
+                          checked={selectedLevels.includes(Number(val))}
+                          onChange={(e) => {
+                            const num = Number(val);
+                            if (e.target.checked) setSelectedLevels([...selectedLevels, num]);
+                            else setSelectedLevels(selectedLevels.filter(l => l !== num));
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </Col>
+              <Col md={4}>
+                <Form.Select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                >
+                  <option value="">{t('firestore.allYears')}</option>
+                  {availableYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </Form.Select>
+              </Col>
+            </Row>
           </Form>
 
           <div className="d-flex align-items-center mt-3">

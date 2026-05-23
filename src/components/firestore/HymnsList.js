@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Alert, Form, InputGroup, Button, Badge } from 'react-bootstrap';
+import { Card, Table, Alert, Form, InputGroup, Button, Badge, Dropdown, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
 import CreateHymns from './CreateHymns';
 import { AGE_LEVEL_MAP, truncateText } from '../../utils/constants';
+import { Document, Paragraph, TextRun, Table as DocxTable, TableRow, TableCell, WidthType, Packer, AlignmentType, BorderStyle } from 'docx';
+import { saveAs } from 'file-saver';
 
 const HymnsList = () => {
   const { t } = useTranslation();
@@ -15,6 +17,19 @@ const HymnsList = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredDocuments, setFilteredDocuments] = useState([]);
+  const [selectedLevels, setSelectedLevels] = useState([]);
+  const [selectedYear, setSelectedYear] = useState('');
+
+  // Extract unique yearNumbers from data
+  const availableYears = React.useMemo(() => {
+    const years = new Set();
+    documents.forEach(doc => {
+      if (doc.yearNumber !== undefined && doc.yearNumber !== null) {
+        years.add(doc.yearNumber);
+      }
+    });
+    return Array.from(years).sort((a, b) => a - b);
+  }, [documents]);
 
   useEffect(() => {
     document.title = `${t('firestore.hymnsTitle')} | Firebase Portal`;
@@ -39,18 +54,35 @@ const HymnsList = () => {
   }, [fetchDocuments]);
 
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredDocuments(documents);
-    } else {
-      const filtered = documents.filter(doc => {
+    let result = documents;
+
+    // 1. Text Search
+    if (searchTerm.trim() !== '') {
+      result = result.filter(doc => {
         return Object.values(doc).some(value =>
           value && typeof value === 'string' &&
           value.toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
-      setFilteredDocuments(filtered);
     }
-  }, [searchTerm, documents]);
+
+    // 2. Level Filter
+    if (selectedLevels.length > 0) {
+      result = result.filter(doc =>
+        doc.ageLevel && Array.isArray(doc.ageLevel) &&
+        doc.ageLevel.some(level => selectedLevels.includes(level))
+      );
+    }
+
+    // 3. Year Filter
+    if (selectedYear !== '') {
+      result = result.filter(doc =>
+        doc.yearNumber !== undefined && doc.yearNumber === Number(selectedYear)
+      );
+    }
+
+    setFilteredDocuments(result);
+  }, [searchTerm, documents, selectedLevels, selectedYear]);
 
   const handleEdit = (doc) => {
     setEditDocument(doc);
@@ -72,6 +104,138 @@ const HymnsList = () => {
   const handleModalClose = () => {
     setShowModal(false);
     setEditDocument(null);
+  };
+
+  const noBorder = {
+    top: { style: BorderStyle.NONE, size: 0 },
+    bottom: { style: BorderStyle.NONE, size: 0 },
+    left: { style: BorderStyle.NONE, size: 0 },
+    right: { style: BorderStyle.NONE, size: 0 },
+  };
+
+  const exportFilteredToWord = async () => {
+    if (filteredDocuments.length === 0) {
+      alert(t('common.noResults'));
+      return;
+    }
+
+    const children = [
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'Hymns Collection',
+            bold: true,
+            size: 32,
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+      }),
+      new Paragraph({ text: '' }),
+    ];
+
+    filteredDocuments.forEach(hymn => {
+      // Hymn title
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: hymn.title || 'Untitled',
+              bold: true,
+              size: 28,
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 300 },
+        })
+      );
+
+      // Split content by lines
+      const arabicLines = (hymn.arabicContent || '').split('\n');
+      const copticLines = (hymn.copticContent || '').split('\n');
+      const copticArabicLines = (hymn.copticArabicContent || '').split('\n');
+      const maxLines = Math.max(arabicLines.length, copticLines.length, copticArabicLines.length);
+
+      const tableRows = [];
+
+      // Header row
+      tableRows.push(
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: 'CopticArabic', bold: true })], alignment: AlignmentType.CENTER })],
+              width: { size: 33, type: WidthType.PERCENTAGE },
+              borders: noBorder,
+            }),
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: 'Coptic', bold: true })], alignment: AlignmentType.CENTER })],
+              width: { size: 34, type: WidthType.PERCENTAGE },
+              borders: noBorder,
+            }),
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: 'Arabic', bold: true })], alignment: AlignmentType.CENTER })],
+              width: { size: 33, type: WidthType.PERCENTAGE },
+              borders: noBorder,
+            }),
+          ],
+        })
+      );
+
+      // Content rows
+      for (let i = 0; i < maxLines; i++) {
+        tableRows.push(
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [new Paragraph({
+                  children: [new TextRun({ text: copticArabicLines[i] || '', size: 22 })],
+                  alignment: AlignmentType.CENTER,
+                })],
+                borders: noBorder,
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  children: [new TextRun({ text: copticLines[i] || '', size: 22 })],
+                  alignment: AlignmentType.CENTER,
+                })],
+                borders: noBorder,
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  children: [new TextRun({ text: arabicLines[i] || '', size: 22 })],
+                  alignment: AlignmentType.RIGHT,
+                  bidirectional: true,
+                })],
+                borders: noBorder,
+              }),
+            ],
+          })
+        );
+      }
+
+      children.push(
+        new DocxTable({
+          rows: tableRows,
+          width: { size: 100, type: WidthType.PERCENTAGE },
+        })
+      );
+
+      children.push(new Paragraph({ text: '' }));
+    });
+
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children,
+      }],
+    });
+
+    let filename = 'Hymns_Collection';
+    if (selectedYear) filename += `_Year_${selectedYear}`;
+    filename += '.docx';
+
+    Packer.toBlob(doc).then(blob => {
+      saveAs(blob, filename);
+    });
   };
 
   if (loading) {
@@ -189,20 +353,83 @@ const HymnsList = () => {
       <Card className="mb-4">
         <Card.Body>
           <Form>
-            <InputGroup className="mb-3">
-              <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
-              <Form.Control
-                placeholder={t('common.search')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
-                  <i className="bi bi-x-lg"></i>
-                </Button>
-              )}
-            </InputGroup>
+            <Row className="g-3">
+              <Col md={4}>
+                <InputGroup>
+                  <InputGroup.Text><i className="bi bi-search"></i></InputGroup.Text>
+                  <Form.Control
+                    placeholder={t('common.search')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  {searchTerm && (
+                    <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
+                      <i className="bi bi-x-lg"></i>
+                    </Button>
+                  )}
+                </InputGroup>
+              </Col>
+              <Col md={4}>
+                <Dropdown autoClose="outside" className="w-100">
+                  <Dropdown.Toggle variant="outline-secondary" className="w-100 text-start d-flex justify-content-between align-items-center">
+                    <span>{selectedLevels.length > 0 ? `${selectedLevels.length} ${t('common.students')}` : t('common.filterByLevel')}</span>
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className="w-100 p-2" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    <div className="px-2 pb-2">
+                      <Form.Check
+                        type="checkbox"
+                        id="selectAllLevelsHymns"
+                        label={t('common.selectAll')}
+                        checked={selectedLevels.length === Object.keys(AGE_LEVEL_MAP).length}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedLevels(Object.keys(AGE_LEVEL_MAP).map(Number));
+                          else setSelectedLevels([]);
+                        }}
+                      />
+                    </div>
+                    <Dropdown.Divider />
+                    {Object.entries(AGE_LEVEL_MAP).map(([val, label]) => (
+                      <div key={val} className="px-2 py-1">
+                        <Form.Check
+                          type="checkbox"
+                          id={`hymns-level-${val}`}
+                          label={label}
+                          checked={selectedLevels.includes(Number(val))}
+                          onChange={(e) => {
+                            const num = Number(val);
+                            if (e.target.checked) setSelectedLevels([...selectedLevels, num]);
+                            else setSelectedLevels(selectedLevels.filter(l => l !== num));
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </Col>
+              <Col md={4}>
+                <Form.Select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                >
+                  <option value="">{t('firestore.allYears')}</option>
+                  {availableYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </Form.Select>
+              </Col>
+            </Row>
           </Form>
+
+          <div className="d-flex align-items-center mt-3">
+            <Button
+              variant="success"
+              onClick={exportFilteredToWord}
+              disabled={filteredDocuments.length === 0}
+            >
+              <i className="bi bi-file-word me-2"></i>
+              Export to Word
+            </Button>
+          </div>
         </Card.Body>
       </Card>
 

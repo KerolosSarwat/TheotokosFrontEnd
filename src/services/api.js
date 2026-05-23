@@ -1,6 +1,6 @@
 // API configuration
-const API_BASE_URL = 'https://theotokosbackend-production.up.railway.app/api';
-//const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://theotokosbackend-production.up.railway.app/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // User endpoints
 export const USER_API = {
@@ -20,6 +20,8 @@ export const USER_API = {
   PORTAL_SYNC: `${API_BASE_URL}/users/portal/sync`,
   GET_PORTAL_USERS: `${API_BASE_URL}/users/portal/users`,
   UPDATE_PORTAL_USER: (uid) => `${API_BASE_URL}/users/portal/users/${uid}`,
+  RESET_PASSWORD_PHONE: `${API_BASE_URL}/users/portal/reset-password-phone`,
+  ADMIN_RESET_PASSWORD: `${API_BASE_URL}/users/portal/admin-reset-password`,
 };
 
 // Firestore endpoints

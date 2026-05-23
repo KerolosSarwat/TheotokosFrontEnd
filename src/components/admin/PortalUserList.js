@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Card, Modal, Form, Badge } from 'react-bootstrap';
+import { Table, Button, Card, Modal, Form, Badge, FloatingLabel, Alert } from 'react-bootstrap';
 import { userService } from '../../services/services';
+import { useAuth } from '../../context/AuthContext';
+import { USER_API } from '../../services/api';
 
 const PortalUserList = () => {
+    const { user: currentUser } = useAuth();
+    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.admin;
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -13,6 +17,14 @@ const PortalUserList = () => {
         role: 'staff',
         permissions: {}
     });
+
+    // Reset Password Modal
+    const [showResetModal, setShowResetModal] = useState(false);
+    const [resetUser, setResetUser] = useState(null);
+    const [resetPassword, setResetPassword] = useState('');
+    const [confirmResetPassword, setConfirmResetPassword] = useState('');
+    const [resetLoading, setResetLoading] = useState(false);
+    const [resetMessage, setResetMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
         fetchUsers();
@@ -82,6 +94,56 @@ const PortalUserList = () => {
         }
     };
 
+    const handleResetPassword = (user) => {
+        setResetUser(user);
+        setResetPassword('');
+        setConfirmResetPassword('');
+        setResetMessage({ type: '', text: '' });
+        setShowResetModal(true);
+    };
+
+    const handleSubmitResetPassword = async () => {
+        setResetMessage({ type: '', text: '' });
+
+        if (!resetPassword || resetPassword.length < 6) {
+            setResetMessage({ type: 'danger', text: 'Password must be at least 6 characters.' });
+            return;
+        }
+
+        if (resetPassword !== confirmResetPassword) {
+            setResetMessage({ type: 'danger', text: 'Passwords do not match.' });
+            return;
+        }
+
+        setResetLoading(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(USER_API.ADMIN_RESET_PASSWORD, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ targetUid: resetUser.uid, newPassword: resetPassword })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setResetMessage({ type: 'success', text: `Password for ${resetUser.displayName} has been reset successfully.` });
+                setResetPassword('');
+                setConfirmResetPassword('');
+            } else {
+                setResetMessage({ type: 'danger', text: data.message || 'Failed to reset password.' });
+            }
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            setResetMessage({ type: 'danger', text: 'An error occurred. Please try again.' });
+        } finally {
+            setResetLoading(false);
+        }
+    };
+
     if (loading) return <div className="text-center mt-5"><div className="spinner-border"></div></div>;
 
     return (
@@ -126,9 +188,14 @@ const PortalUserList = () => {
                                             </small>
                                         </td>
                                         <td>
-                                            <Button variant="outline-primary" size="sm" onClick={() => handleEdit(user)}>
+                                            <Button variant="outline-primary" size="sm" onClick={() => handleEdit(user)} className="me-1">
                                                 <i className="bi bi-shield-lock"></i> Permissions
                                             </Button>
+                                            {isAdmin && (
+                                                <Button variant="outline-warning" size="sm" onClick={() => handleResetPassword(user)}>
+                                                    <i className="bi bi-key"></i> Reset Password
+                                                </Button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
@@ -194,6 +261,61 @@ const PortalUserList = () => {
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
                     <Button variant="primary" onClick={handleSubmit}>Save Changes</Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Reset Password Modal */}
+            <Modal show={showResetModal} onHide={() => setShowResetModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Reset Password: {resetUser?.displayName}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {resetMessage.text && (
+                        <Alert variant={resetMessage.type} dismissible onClose={() => setResetMessage({ type: '', text: '' })}>
+                            {resetMessage.text}
+                        </Alert>
+                    )}
+
+                    {!resetMessage.text?.includes('successfully') && (
+                        <>
+                            <p className="text-muted small">
+                                Set a new password for <strong>{resetUser?.email}</strong>.
+                                The user will need to use this new password to log in.
+                            </p>
+
+                            <FloatingLabel controlId="resetNewPassword" label="New Password" className="mb-3">
+                                <Form.Control
+                                    type="password"
+                                    value={resetPassword}
+                                    onChange={(e) => setResetPassword(e.target.value)}
+                                    placeholder="New Password"
+                                />
+                            </FloatingLabel>
+
+                            <FloatingLabel controlId="resetConfirmPassword" label="Confirm Password" className="mb-3">
+                                <Form.Control
+                                    type="password"
+                                    value={confirmResetPassword}
+                                    onChange={(e) => setConfirmResetPassword(e.target.value)}
+                                    placeholder="Confirm Password"
+                                />
+                            </FloatingLabel>
+                        </>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowResetModal(false)}>
+                        {resetMessage.text?.includes('successfully') ? 'Close' : 'Cancel'}
+                    </Button>
+                    {!resetMessage.text?.includes('successfully') && (
+                        <Button variant="warning" onClick={handleSubmitResetPassword} disabled={resetLoading}>
+                            {resetLoading ? (
+                                <><span className="spinner-border spinner-border-sm me-2"></span>Resetting...</>
+                            ) : (
+                                <><i className="bi bi-key me-2"></i>Reset Password</>
+                            )}
+                        </Button>
+                    )}
                 </Modal.Footer>
             </Modal>
         </div>

@@ -84,6 +84,9 @@ const ForgotPassword = () => {
                 </Button>
 
                 <div className="text-center mt-4">
+                    <Link to="/reset-password-phone" className="text-muted small text-decoration-none me-3">
+                        <i className="bi bi-phone me-1"></i> Reset via Phone
+                    </Link>
                     <Link to="/login" className="text-primary fw-bold text-decoration-none">
                         <i className="bi bi-arrow-left me-1"></i> Back to Login
                     </Link>

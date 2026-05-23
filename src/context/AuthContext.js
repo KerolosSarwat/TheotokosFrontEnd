@@ -7,7 +7,10 @@ import {
     signOut,
     onAuthStateChanged,
     updateProfile as firebaseUpdateProfile,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword
 } from 'firebase/auth';
 
 const AuthContext = createContext();
@@ -151,6 +154,36 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const changePassword = async (currentPassword, newPassword) => {
+        try {
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                return { success: false, error: 'No user logged in.' };
+            }
+
+            // Re-authenticate the user with their current password
+            const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+            await reauthenticateWithCredential(currentUser, credential);
+
+            // Update to the new password
+            await updatePassword(currentUser, newPassword);
+            return { success: true };
+        } catch (error) {
+            console.error('Change password error:', error.code, error.message);
+            let errorMessage = 'Failed to change password.';
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                errorMessage = 'Current password is incorrect.';
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = 'New password should be at least 6 characters.';
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage = 'Too many attempts. Please try again later.';
+            } else if (error.code === 'auth/requires-recent-login') {
+                errorMessage = 'Please log out and log back in, then try again.';
+            }
+            return { success: false, error: errorMessage };
+        }
+    };
+
     const updateProfile = async (name) => {
         try {
             if (auth.currentUser) {
@@ -201,6 +234,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         resetPassword,
+        changePassword,
         updateProfile,
         hasPermission,
     };

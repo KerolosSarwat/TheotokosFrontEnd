@@ -1,16 +1,17 @@
-import React from 'react';
-import { Navbar as BootstrapNavbar, Container, Nav, Dropdown } from 'react-bootstrap';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import ThemeToggle from './ThemeToggle';
+import { Navbar, Nav, Container, Form, InputGroup, Button, Dropdown } from 'react-bootstrap';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 
-const Navbar = () => {
-  const { theme } = useTheme();
+const AppNavbar = ({ onMenuClick }) => {
+  const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+
+  const [showSearch, setShowSearch] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -21,100 +22,155 @@ const Navbar = () => {
     i18n.changeLanguage(lng);
   };
 
+  const isDark = theme === 'dark';
+  const isRTL = i18n.language === 'ar';
+
   return (
-    <BootstrapNavbar
-      expand="lg"
-      className={`sticky-top p-2 glass ${theme === 'dark' ? 'navbar-dark bg-dark' : 'navbar-light bg-light'} mb-4`}
-      style={{
-        borderBottom: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-        background: theme === 'dark' ? 'rgba(33, 37, 41, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(10px)'
-      }}
-    >
-      <Container fluid>
-        <BootstrapNavbar.Brand as={Link} to="/" className="d-flex align-items-center fw-bold fs-4">
-          <i className="bi bi-fire text-primary me-2"></i>
-          <span className="bg-gradient-primary-text">Firebase Portal</span>
-        </BootstrapNavbar.Brand>
+    <Navbar bg={isDark ? 'dark' : 'white'} variant={isDark ? 'dark' : 'light'} sticky="top" className={`border-bottom ${isDark ? 'border-secondary' : 'border-light'} shadow-sm py-2`} style={{ backdropFilter: 'blur(10px)' }}>
+      <Container fluid className="px-2 px-sm-4">
+        {/* Left Section - Menu Button & Brand */}
+        <div className="d-flex align-items-center me-auto">
+          <Button 
+            variant={isDark ? "link text-light" : "link text-dark"} 
+            className="d-md-none p-1 me-2 text-decoration-none" 
+            onClick={onMenuClick}
+            aria-label="Open menu"
+          >
+            <i className="bi bi-list fs-3"></i>
+          </Button>
+          
+          <Navbar.Brand as={Link} to="/" className="d-flex align-items-center m-0 pe-2">
+            <i className="bi bi-fire text-primary me-2 fs-4"></i>
+            <span className="d-none d-sm-inline fw-bold bg-gradient-primary-text fs-5">Firebase Portal</span>
+            <span className="d-inline d-sm-none fw-bold bg-gradient-primary-text fs-5">Portal</span>
+          </Navbar.Brand>
+        </div>
 
-        <div className="d-flex align-items-center ms-auto order-lg-last gap-2">
-          {/* Global Search Bar */}
-          <div className="d-none d-md-flex align-items-center mx-3 position-relative" style={{ minWidth: '300px' }}>
-            <i className="bi bi-search position-absolute ms-3 text-muted"></i>
-            <input
-              type="text"
-              className="form-control rounded-pill ps-5 bg-light border-0"
+        {/* Center Section - Search (Desktop) */}
+        <Form className="d-none d-md-flex mx-auto w-100" style={{ maxWidth: '400px' }}>
+          <InputGroup>
+            <InputGroup.Text className={`border-0 border-end-0 rounded-start-pill ${isDark ? 'bg-secondary text-light' : 'bg-light'}`}>
+              <i className="bi bi-search"></i>
+            </InputGroup.Text>
+            <Form.Control
+              type="search"
               placeholder={t('common.search', 'Search...')}
+              className={`border-0 border-start-0 rounded-end-pill shadow-none ${isDark ? 'bg-secondary text-light' : 'bg-light'}`}
             />
-          </div>
+          </InputGroup>
+        </Form>
 
-          {/* Language Switcher */}
-          <Dropdown align="end">
-            <Dropdown.Toggle variant="outline-secondary" size="sm" className="rounded-pill px-3 d-flex align-items-center gap-2">
-              <i className="bi bi-translate"></i>
-              <span>{i18n.language === 'ar' ? 'العربية' : 'English'}</span>
+        {/* Right Section - Actions */}
+        <Nav className="d-flex align-items-center ms-auto gap-1 gap-sm-2 flex-row">
+          
+          {/* Mobile Search Toggle */}
+          <Button 
+            variant={isDark ? "link text-light" : "link text-dark"} 
+            className="d-md-none p-1 text-decoration-none rounded-circle"
+            onClick={() => setShowSearch(!showSearch)}
+          >
+            <i className="bi bi-search fs-5"></i>
+          </Button>
+
+          {/* Language Dropdown */}
+          <Dropdown align={isRTL ? "start" : "end"}>
+            <Dropdown.Toggle variant={isDark ? "link text-light" : "link text-dark"} className="text-decoration-none d-flex align-items-center gap-1 p-1 p-sm-2 rounded-pill shadow-none border-0">
+              <i className="bi bi-globe2 fs-5"></i>
+              <span className="d-none d-lg-inline small fw-medium">{i18n.language === 'ar' ? 'العربية' : 'English'}</span>
             </Dropdown.Toggle>
-            <Dropdown.Menu className="shadow-sm border-0 glass">
-              <Dropdown.Item onClick={() => changeLanguage('ar')} active={i18n.language === 'ar'}>
-                العربية
-              </Dropdown.Item>
-              <Dropdown.Item onClick={() => changeLanguage('en')} active={i18n.language === 'en'}>
-                English
-              </Dropdown.Item>
+            <Dropdown.Menu className="shadow-sm border-0 mt-2">
+              <Dropdown.Item onClick={() => changeLanguage('ar')} active={i18n.language === 'ar'} className="text-end">العربية</Dropdown.Item>
+              <Dropdown.Item onClick={() => changeLanguage('en')} active={i18n.language === 'en'}>English</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
 
-          <ThemeToggle />
-          <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
-        </div>
+          {/* Theme Toggle */}
+          <Button 
+            variant={isDark ? "link text-warning" : "link text-secondary"} 
+            className="p-1 p-sm-2 text-decoration-none rounded-circle" 
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+          >
+            <i className={isDark ? "bi bi-sun-fill fs-5" : "bi bi-moon-stars-fill fs-5"}></i>
+          </Button>
 
-        <BootstrapNavbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto me-3 align-items-center gap-2">
-            {/* Admin Only Link for Staff Management */}
-            {(user?.role === 'admin' || user?.role === 'super_admin' || user?.admin) && (
-              <Nav.Link as={Link} to="/admin/portal-users" className="btn btn-outline-secondary rounded-pill px-3 py-2 d-inline-flex align-items-center ms-2">
-                <i className="bi bi-shield-lock me-1"></i>
-                Staff
-              </Nav.Link>
-            )}
+          {/* Admin Link - Desktop only */}
+          {(user?.role === 'admin' || user?.role === 'super_admin' || user?.admin) && (
+            <Button 
+              as={Link} 
+              to="/admin/portal-users" 
+              variant={isDark ? "outline-secondary text-light" : "outline-secondary"} 
+              size="sm" 
+              className="d-none d-xl-flex align-items-center gap-1 rounded-pill px-3 py-1 mx-1"
+            >
+              <i className="bi bi-shield-check"></i>
+              <span>Staff</span>
+            </Button>
+          )}
 
-            {user && (
-              <Dropdown align="end" className="ms-3">
-                <Dropdown.Toggle variant="link" className="text-decoration-none p-0 profile-toggle" style={{ color: 'var(--bs-body-color)' }}>
-                  <div className="d-flex align-items-center bg-light-soft p-1 pe-3 rounded-pill border">
-                    <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
-                      <i className="bi bi-person-fill text-white"></i>
-                    </div>
-                    <span className="d-none d-md-inline small fw-medium">{user.email}</span>
-                  </div>
-                </Dropdown.Toggle>
+          {/* User Dropdown */}
+          {user && (
+            <Dropdown align={isRTL ? "start" : "end"}>
+              <Dropdown.Toggle variant="link" className="text-decoration-none d-flex align-items-center gap-2 p-1 pe-sm-2 rounded-pill shadow-none border-0 text-dark">
+                <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+                  <i className="bi bi-person-fill fs-5"></i>
+                </div>
+                <span className={`d-none d-lg-inline small fw-medium text-truncate ${isDark ? 'text-light' : 'text-dark'}`} style={{ maxWidth: '120px' }}>
+                  {user.email}
+                </span>
+              </Dropdown.Toggle>
 
-                <Dropdown.Menu className="shadow-lg border-0 py-2 glass mt-2">
-                  <Dropdown.Item disabled className="py-2">
-                    <div className="d-flex flex-column">
-                      <span className="fw-bold">{user.name}</span>
-                      <small className="text-muted">{user.email}</small>
-                    </div>
+              <Dropdown.Menu className="shadow border-0 mt-2 p-0" style={{ minWidth: '240px', borderRadius: '1rem', overflow: 'hidden' }}>
+                <div className={`px-4 py-3 border-bottom ${isDark ? 'bg-dark border-secondary text-light' : 'bg-light border-light'}`}>
+                  <div className="fw-bold text-truncate">{user.name || user.email}</div>
+                  <div className={`small text-truncate ${isDark ? 'text-white-50' : 'text-muted'}`}>{user.email}</div>
+                </div>
+                
+                <div className="py-2">
+                  <Dropdown.Item as={Link} to="/profile" className="d-flex align-items-center gap-3 px-4 py-2">
+                    <i className="bi bi-person-circle text-primary fs-5"></i> 
+                    <span className="fw-medium">{t('nav.profile')}</span>
                   </Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Item as={Link} to="/profile" className="py-2">
-                    <i className="bi bi-person-fill text-primary me-2"></i>
-                    {t('nav.profile')}
+
+                  {(user?.role === 'admin' || user?.role === 'super_admin' || user?.admin) && (
+                    <Dropdown.Item as={Link} to="/admin/portal-users" className="d-xl-none d-flex align-items-center gap-3 px-4 py-2">
+                      <i className="bi bi-shield-lock-fill text-primary fs-5"></i> 
+                      <span className="fw-medium">Staff</span>
+                    </Dropdown.Item>
+                  )}
+
+                  <Dropdown.Divider className={isDark ? 'border-secondary' : ''} />
+                  
+                  <Dropdown.Item onClick={handleLogout} className="text-danger d-flex align-items-center gap-3 px-4 py-2">
+                    <i className="bi bi-box-arrow-right fs-5"></i> 
+                    <span className="fw-medium">{t('nav.logout')}</span>
                   </Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Item onClick={handleLogout} className="py-2 text-danger">
-                    <i className="bi bi-box-arrow-right me-2"></i>
-                    {t('nav.logout')}
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            )}
-          </Nav>
-        </BootstrapNavbar.Collapse>
+                </div>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
+        </Nav>
       </Container>
-    </BootstrapNavbar>
+      
+      {/* Mobile Search Bar Expandable */}
+      {showSearch && (
+        <div className="d-md-none w-100 px-3 pb-2 pt-1 position-absolute start-0 top-100 bg-white border-bottom shadow-sm" style={{ zIndex: 1000 }}>
+          <InputGroup size="sm">
+            <InputGroup.Text className="bg-light border-0 border-end-0 rounded-start-pill">
+              <i className="bi bi-search"></i>
+            </InputGroup.Text>
+            <Form.Control
+              type="search"
+              placeholder={t('common.search', 'Search...')}
+              className="bg-light border-0 border-start-0 rounded-end-pill shadow-none"
+              autoFocus
+            />
+          </InputGroup>
+        </div>
+      )}
+    </Navbar>
   );
 };
 
-export default Navbar;
+export default AppNavbar;
 

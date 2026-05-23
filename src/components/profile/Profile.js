@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Button, Form, FloatingLabel, Alert } from 'r
 import { useAuth } from '../../context/AuthContext';
 
 const Profile = () => {
-    const { user, updateProfile } = useAuth();
+    const { user, updateProfile, changePassword } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -70,13 +70,16 @@ const Profile = () => {
         setLoading(true);
 
         try {
-            // TODO: Implement actual password change with backend
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setMessage({ type: 'success', text: 'Password changed successfully!' });
-            setIsChangingPassword(false);
-            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
+            if (result.success) {
+                setMessage({ type: 'success', text: 'Password changed successfully!' });
+                setIsChangingPassword(false);
+                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            } else {
+                setMessage({ type: 'danger', text: result.error || 'Failed to change password' });
+            }
         } catch (error) {
-            setMessage({ type: 'danger', text: 'Failed to change password' });
+            setMessage({ type: 'danger', text: 'An unexpected error occurred while changing password' });
         } finally {
             setLoading(false);
         }

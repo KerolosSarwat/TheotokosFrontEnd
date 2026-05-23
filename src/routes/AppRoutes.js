@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Outlet } from 'react-router-dom';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 
 // Layouts
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
+import MobileSidebar from '../components/common/MobileSidebar';
 
 // Components
 import Dashboard from '../components/dashboard/Dashboard';
@@ -18,12 +19,14 @@ import Notification from '../components/users/NotificationForm';
 import Profile from '../components/profile/Profile';
 import StudentDegrees from '../components/users/StudentDegrees';
 import BulkDegreeUpload from '../components/users/BulkDegreeUpload';
+import DegreeReport from '../components/users/DegreeReport';
 import Settings from '../components/settings/Settings';
 
 // Auth Components
 import Login from '../components/auth/Login';
 import Register from '../components/auth/Register';
 import ForgotPassword from '../components/auth/ForgotPassword';
+import ResetPasswordPhone from '../components/auth/ResetPasswordPhone';
 
 // Firestore Components
 import AgbyaList from '../components/firestore/AgbyaList';
@@ -36,15 +39,21 @@ import CreateHymns from '../components/firestore/CreateHymns';
 import CreateCopticContent from '../components/firestore/CreateCopticContent';
 
 const MainLayout = () => {
+    const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+
+    const handleShowMobileSidebar = () => setShowMobileSidebar(true);
+    const handleCloseMobileSidebar = () => setShowMobileSidebar(false);
+
     return (
         <>
-            <Navbar />
+            <Navbar onMenuClick={handleShowMobileSidebar} />
+            <MobileSidebar show={showMobileSidebar} onHide={handleCloseMobileSidebar} />
             <div className="container-fluid">
                 <div className="row">
                     <div className="col-md-2 d-none d-md-block sidebar">
                         <Sidebar />
                     </div>
-                    <main className="col-md-10 ms-sm-auto px-md-4">
+                    <main className="col-12 col-md-10 ms-sm-auto px-md-4 main-content">
                         <Outlet />
                     </main>
                 </div>
@@ -60,6 +69,7 @@ const AppRoutes = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password-phone" element={<ResetPasswordPhone />} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
@@ -84,6 +94,7 @@ const AppRoutes = () => {
                         <BulkDegreeUpload />
                     </ProtectedRoute>
                 } />
+                <Route path="/degree-report" element={<DegreeReport />} />
 
                 {/* Firestore Routes */}
                 <Route path="/firestore/agbya" element={<AgbyaList />} />

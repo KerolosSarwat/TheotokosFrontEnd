@@ -58,6 +58,17 @@ const Sidebar = () => {
             </Nav.Link>
           </Nav.Item>
         )}
+        <Nav.Item>
+          <Nav.Link
+            as={Link}
+            to="/degree-report"
+            active={location.pathname === '/degree-report'}
+            className="rounded-3 d-flex align-items-center py-2 px-3"
+          >
+            <i className="bi bi-mortarboard me-2"></i>
+            {t('nav.degreeReport')}
+          </Nav.Link>
+        </Nav.Item>
 
 
 

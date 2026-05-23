@@ -11,7 +11,8 @@
         "addUser": "Add User",
         "profile": "My Profile",
         "logout": "Logout",
-        "settings": "Settings"
+        "settings": "Settings",
+        "degreeReport": "Degree Report"
     },
     "common": {
         "search": "Search...",
@@ -154,7 +155,8 @@
         "name": "Name",
         "content": "Content",
         "order": "Order",
-        "type": "Type"
+        "type": "Type",
+        "allYears": "All Years"
     },
     "permissions": {
         "title": "User Permissions",
@@ -184,5 +186,21 @@
         "saveError": "Failed to save settings. Please try again.",
         "loadError": "Failed to load configuration. Please check if the backend is running and the 'config' node exists in Realtime Database.",
         "saveAll": "Save All Settings"
+    },
+    "degreeReport": {
+        "title": "Student Degree Report",
+        "searchPlaceholder": "Search by name or code...",
+        "levelsSelected": "levels selected",
+        "totalStudents": "Total Students",
+        "withDegrees": "With Degrees",
+        "avgTotal": "Average Total",
+        "topStudent": "Top Student",
+        "grade": "Grade",
+        "excellent": "Excellent",
+        "veryGood": "Very Good",
+        "good": "Good",
+        "pass": "Pass",
+        "fail": "Fail",
+        "print": "Print"
     }
 }
