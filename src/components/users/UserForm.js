@@ -23,6 +23,7 @@ const UserForm = () => {
     address: '',
     admin: false,
     active: false,
+    deacon: false,
     degree: {
       firstTerm: {
         agbya: 0,
@@ -251,6 +252,8 @@ const UserForm = () => {
                     value={formData.level}
                     onChange={handleChange}>
                     <option value="حضانة">حضانة</option>
+                    <option value="KG1">KG1</option>
+                    <option value="KG2">KG2</option>
                     <option value="أولى ابتدائى">أولى ابتدائى</option>
                     <option value="ثانية ابتدائى">ثانية ابتدائى</option>
                     <option value="ثالثة ابتدائى">ثالثة ابتدائى</option>
@@ -278,6 +281,14 @@ const UserForm = () => {
             </Row>
 
             <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Deacon / شماس"
+                name="deacon"
+                checked={formData.deacon || false}
+                onChange={handleChange}
+              />
+
               <Form.Check
                 type="checkbox"
                 label={t('common.active')}

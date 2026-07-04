@@ -1,6 +1,6 @@
 // API configuration
-const API_BASE_URL = 'https://theotokosbackend-production.up.railway.app/api';
-// const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://theotokosbackend-production.up.railway.app/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // User endpoints
 export const USER_API = {
@@ -14,6 +14,8 @@ export const USER_API = {
   DELETE_PENDDING: (code) => `${API_BASE_URL}/users/pendding/${code}`,
   NOTIFICATION: `${API_BASE_URL}/users/send-notification`,
   ATTENDANCE: (level) => `${API_BASE_URL}/users/attendance-report?level=${level}`,
+  MARK_ATTENDANCE: (code) => `${API_BASE_URL}/users/attendance/${code}`,
+  SYNC_ATTENDANCE: `${API_BASE_URL}/users/attendance-sync`,
   APPROVE: (code) => `${API_BASE_URL}/users/approve/${code}`,
 
   // Portal User Management

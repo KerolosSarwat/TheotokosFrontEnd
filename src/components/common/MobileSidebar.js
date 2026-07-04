@@ -87,18 +87,20 @@ const MobileSidebar = ({ show, onHide }) => {
             </Nav.Link>
           </Nav.Item>
 
-          <Nav.Item>
-            <Nav.Link
-              as={Link}
-              to="/attendance"
-              onClick={onHide}
-              active={location.pathname.startsWith('/attendance')}
-              className={navLinkClass(location.pathname.startsWith('/attendance'))}
-            >
-              <i className="bi bi-calendar-check me-3 fs-5"></i>
-              {t('nav.attendance')}
-            </Nav.Link>
-          </Nav.Item>
+          {hasPermission('attendance', 'view') && (
+            <Nav.Item>
+              <Nav.Link
+                as={Link}
+                to="/attendance"
+                onClick={onHide}
+                active={location.pathname.startsWith('/attendance')}
+                className={navLinkClass(location.pathname.startsWith('/attendance'))}
+              >
+                <i className="bi bi-calendar-check me-3 fs-5"></i>
+                {t('nav.attendance')}
+              </Nav.Link>
+            </Nav.Item>
+          )}
 
           {hasPermission('degrees', 'edit') && (
             <Nav.Item>

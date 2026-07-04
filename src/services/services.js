@@ -131,6 +131,26 @@ export const userService = {
     }
   },
 
+  markAttendance: async (code) => {
+    try {
+      const response = await api.post(USER_API.MARK_ATTENDANCE(code));
+      return response.data;
+    } catch (error) {
+      console.error(`Error marking attendance for user ${code}:`, error);
+      throw error;
+    }
+  },
+
+  syncAttendanceDegrees: async () => {
+    try {
+      const response = await api.post(USER_API.SYNC_ATTENDANCE);
+      return response.data;
+    } catch (error) {
+      console.error('Error syncing attendance degrees:', error);
+      throw error;
+    }
+  },
+
   approveUser: async (code) => {
     try {
       const response = await api.post(USER_API.APPROVE(code));

@@ -34,17 +34,19 @@ const Sidebar = () => {
             {t('nav.users')}
           </Nav.Link>
         </Nav.Item>
-        <Nav.Item>
-          <Nav.Link
-            as={Link}
-            to="/attendance"
-            active={location.pathname.startsWith('/attendance')}
-            className="rounded-3 d-flex align-items-center py-2 px-3"
-          >
-            <i className="bi bi-calendar-check me-2"></i>
-            {t('nav.attendance')}
-          </Nav.Link>
-        </Nav.Item>
+        {hasPermission('attendance', 'view') && (
+          <Nav.Item>
+            <Nav.Link
+              as={Link}
+              to="/attendance"
+              active={location.pathname.startsWith('/attendance')}
+              className="rounded-3 d-flex align-items-center py-2 px-3"
+            >
+              <i className="bi bi-calendar-check me-2"></i>
+              {t('nav.attendance')}
+            </Nav.Link>
+          </Nav.Item>
+        )}
         {hasPermission('degrees', 'edit') && (
           <Nav.Item>
             <Nav.Link

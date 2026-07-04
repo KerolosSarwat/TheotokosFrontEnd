@@ -207,7 +207,7 @@ export const AuthProvider = ({ children }) => {
     const hasPermission = (module, action) => {
         if (!user) return false;
         // Admins have full access
-        if (user.admin) return true;
+        if (user.admin || user.role === 'admin' || user.role === 'super_admin') return true;
 
         // Check granular permissions
         if (user.permissions && user.permissions[module] && user.permissions[module][action]) {

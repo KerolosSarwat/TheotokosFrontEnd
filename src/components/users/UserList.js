@@ -25,7 +25,7 @@ const UserList = () => {
   // Dynamic levels from data
   const ALL_LEVELS = useMemo(() => {
     const levels = new Set([
-      "حضانة",
+      "حضانة", "KG1", "KG2",
       "أولى ابتدائى", "ثانية ابتدائى", "ثالثة ابتدائى",
       "رابعة ابتدائى", "خامسة ابتدائى", "سادسة ابتدائى",
       "اعدادى", "ثانوى ", "جامعة أو خريج"
@@ -391,6 +391,16 @@ const UserList = () => {
     }
   };
 
+  const handleMarkAttendance = async (code) => {
+    try {
+      await userService.markAttendance(code);
+      alert('Attendance marked successfully');
+    } catch (err) {
+      alert('Error marking attendance');
+      console.error('Error marking attendance:', err);
+    }
+  };
+
   if (loading) {
     return <div className="text-center mt-5"><div className="spinner-border" role="status"></div></div>;
   }
@@ -685,6 +695,17 @@ const UserList = () => {
                           >
                             <i className="bi bi-person-badge"></i>
                           </Button>
+                          {hasPermission('attendance', 'edit') && (
+                            <Button
+                              variant="outline-success"
+                              size="sm"
+                              className="btn-action"
+                              onClick={() => handleMarkAttendance(user.code)}
+                              title={'Mark Present'}
+                            >
+                              <i className="bi bi-check-circle"></i>
+                            </Button>
+                          )}
                           {/* Quick View Trigger */}
                           <Button
                             variant="outline-info"

@@ -3,6 +3,8 @@
  * Used for displaying levels in Firestore collections.
  */
 export const AGE_LEVEL_MAP = {
+    '-2': 'KG1',
+    '-1': 'KG2',
     0: 'حضانة',
     1: 'أولى ابتدائى',
     2: 'ثانية ابتدائى',

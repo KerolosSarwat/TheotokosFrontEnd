@@ -43,6 +43,8 @@ const AttendanceReport = () => {
     'جامعيين و خريجين',
   ];
 
+  const [syncing, setSyncing] = useState(false);
+
   const fetchAttendanceReport = useCallback(async () => {
     try {
       setLoading(true);
@@ -60,6 +62,20 @@ const AttendanceReport = () => {
   useEffect(() => {
     fetchAttendanceReport();
   }, [fetchAttendanceReport]);
+
+  const handleSyncDegrees = async () => {
+    setSyncing(true);
+    try {
+      const result = await userService.syncAttendanceDegrees();
+      alert(result.message || 'Sync complete!');
+    } catch (err) {
+      alert('Error syncing attendance degrees.');
+      console.error(err);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
 
   // Filter students by search term, levels, and date
   const filteredStudents = useMemo(() => {
@@ -264,6 +280,17 @@ const AttendanceReport = () => {
       <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 className="h2">{t('attendance.title')}</h1>
         <div className="d-flex gap-2">
+          <Button
+            variant="warning"
+            onClick={handleSyncDegrees}
+            disabled={syncing}
+            className="d-flex align-items-center"
+          >
+            {syncing
+              ? <><span className="spinner-border spinner-border-sm me-1"></span>Syncing...</>
+              : <><i className="bi bi-arrow-repeat me-1"></i>Sync Degrees</>
+            }
+          </Button>
           <Button
             variant="success"
             onClick={exportToExcel}

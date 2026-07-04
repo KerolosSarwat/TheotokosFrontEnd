@@ -76,7 +76,11 @@ const AppRoutes = () => {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/users" element={<UserList />} />
-                <Route path="/attendance" element={<Attendance />} />
+                <Route path="/attendance" element={
+                    <ProtectedRoute requiredPermission={{ module: 'attendance', action: 'view' }}>
+                        <Attendance />
+                    </ProtectedRoute>
+                } />
                 <Route path="/penddingusers" element={<PenddingUserList />} />
                 <Route path="/users/new" element={<UserForm />} />
                 <Route path="/users/edit/:code" element={<UserForm />} />
