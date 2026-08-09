@@ -202,5 +202,33 @@
         "pass": "Pass",
         "fail": "Fail",
         "print": "Print"
+    },
+    "bulkDegree": {
+        "emptyFile": "The uploaded file is empty. Please add data and try again.",
+        "missingCode": "Invalid template. Missing 'Code' column. Please use the template.",
+        "parseError": "Error reading file: ",
+        "noData": "No valid data to process.",
+        "fetchingUsers": "Fetching user records for validation...",
+        "fetchError": "Could not fetch users for validation.",
+        "validatingCodes": "Validating student codes...",
+        "noValidCodes": "No valid student codes found.",
+        "uploadingBatch": "Uploading batch {{current}} of {{total}}...",
+        "completed": "Upload complete! {{success}} updated successfully.",
+        "uploadFailed": "Bulk update failed: ",
+        "reset": "Reset",
+        "downloadStep": "Download Template",
+        "downloadDesc": "Download the Excel template, fill in student codes and their degrees, then upload it below.",
+        "downloadTemplate": "Download Template (Excel)",
+        "selectTermStep": "Select Term",
+        "uploadStep": "Upload Excel File",
+        "preview": "Data Preview",
+        "uploadAndUpdate": "Upload & Update Degrees",
+        "validatingPhase": "Validating...",
+        "uploadingPhase": "Uploading...",
+        "donePhase": "Complete",
+        "successTitle": "Upload Successful!",
+        "successDetail": "Updated {{count}} students for {{term}} successfully.",
+        "failedTitle": "Student Codes Not Found / Failed",
+        "uploadAnother": "Upload Another File"
     }
 }

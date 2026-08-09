@@ -202,5 +202,33 @@
         "pass": "مقبول",
         "fail": "ضعيف",
         "print": "طباعة"
+    },
+    "bulkDegree": {
+        "emptyFile": "الملف المرفوع فارغ. يرجى إضافة بيانات والمحاولة مرة أخرى.",
+        "missingCode": "قالب غير صالح. عمود 'Code' مفقود. يرجى استخدام القالب.",
+        "parseError": "خطأ في قراءة الملف: ",
+        "noData": "لا توجد بيانات صالحة للمعالجة.",
+        "fetchingUsers": "جاري جلب سجلات المستخدمين للتحقق...",
+        "fetchError": "تعذر جلب المستخدمين للتحقق.",
+        "validatingCodes": "جاري التحقق من أكواد الطلاب...",
+        "noValidCodes": "لم يتم العثور على أكواد طلاب صالحة.",
+        "uploadingBatch": "جاري رفع الدفعة {{current}} من {{total}}...",
+        "completed": "اكتمل الرفع! تم تحديث {{success}} بنجاح.",
+        "uploadFailed": "فشل التحديث الجماعي: ",
+        "reset": "إعادة تعيين",
+        "downloadStep": "تحميل القالب",
+        "downloadDesc": "قم بتحميل قالب Excel، أدخل أكواد الطلاب ودرجاتهم، ثم ارفع الملف أدناه.",
+        "downloadTemplate": "تحميل القالب (Excel)",
+        "selectTermStep": "اختر الترم",
+        "uploadStep": "رفع ملف Excel",
+        "preview": "معاينة البيانات",
+        "uploadAndUpdate": "رفع وتحديث الدرجات",
+        "validatingPhase": "جاري التحقق...",
+        "uploadingPhase": "جاري الرفع...",
+        "donePhase": "اكتمل",
+        "successTitle": "تم الرفع بنجاح!",
+        "successDetail": "تم تحديث {{count}} طالب لـ {{term}} بنجاح.",
+        "failedTitle": "أكواد الطلاب غير موجودة / فشلت",
+        "uploadAnother": "رفع ملف آخر"
     }
 }
