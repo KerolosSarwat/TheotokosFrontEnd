@@ -8,13 +8,11 @@ const BATCH_SIZE = 10;
 
 const BulkDegreeUpload = () => {
     const { t } = useTranslation();
-    const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [results, setResults] = useState(null);
     const [error, setError] = useState(null);
     const [selectedTerm, setSelectedTerm] = useState('firstTerm');
     const [parsedData, setParsedData] = useState(null);
-    const [validationResult, setValidationResult] = useState(null);
 
     // Progress tracking
     const [progress, setProgress] = useState(0);
@@ -43,11 +41,9 @@ const BulkDegreeUpload = () => {
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
-        setFile(selectedFile);
         setResults(null);
         setError(null);
         setParsedData(null);
-        setValidationResult(null);
         setProgress(0);
         setCurrentPhase('');
         setProgressStatus('');
@@ -138,11 +134,7 @@ const BulkDegreeUpload = () => {
                 }
             });
 
-            setValidationResult({
-                valid: validUpdates.length,
-                notFound: notFoundCodes.length,
-                notFoundCodes
-            });
+
 
             setProgress(20);
 
@@ -239,9 +231,7 @@ const BulkDegreeUpload = () => {
     };
 
     const handleReset = () => {
-        setFile(null);
         setParsedData(null);
-        setValidationResult(null);
         setResults(null);
         setError(null);
         setProgress(0);
