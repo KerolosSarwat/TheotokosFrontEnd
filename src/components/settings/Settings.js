@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, Form, Button, Row, Col, Alert, Tabs, Tab, Spinner } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { configService } from '../../services/services';
+import { configService, idCardService } from '../../services/services';
 import { useAuth } from '../../context/AuthContext';
 
 const Settings = () => {
@@ -12,6 +12,12 @@ const Settings = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+
+    // ID Card settings state
+    const [idCardConfig, setIdCardConfig] = useState(null);
+    const [bgFile, setBgFile] = useState(null);
+    const [bgPreview, setBgPreview] = useState(null);
+    const [idCardSaving, setIdCardSaving] = useState(false);
 
     const canEdit = hasPermission('settings', 'edit');
     const canView = hasPermission('settings', 'view');
@@ -32,6 +38,25 @@ const Settings = () => {
     useEffect(() => {
         fetchConfig();
     }, [fetchConfig]);
+
+    // Fetch ID card config
+    useEffect(() => {
+        const fetchIdCardConfig = async () => {
+            try {
+                const data = await idCardService.getConfig();
+                setIdCardConfig(data);
+            } catch (err) {
+                console.error('Error fetching ID card config:', err);
+                setIdCardConfig({
+                    width: 85.6,
+                    height: 53.98,
+                    backgroundUrl: null,
+                    selectedFields: ['fullName', 'code', 'level', 'church']
+                });
+            }
+        };
+        fetchIdCardConfig();
+    }, []);
 
     const handleDegreeChange = (subject, value) => {
         setConfig(prev => ({
@@ -257,6 +282,147 @@ const Settings = () => {
                                         {index < 2 && <hr className="mt-4" />}
                                     </div>
                                 ))}
+                            </Card.Body>
+                        </Card>
+                    </Tab>
+
+                    <Tab eventKey="idCard" title={t('idCard.settingsTab')}>
+                        <Card className="shadow-sm border-0">
+                            <Card.Body>
+                                <Card.Title className="mb-4">{t('idCard.dimensions')}</Card.Title>
+                                <Row className="g-3 mb-4">
+                                    <Col md={4}>
+                                        <Form.Group controlId="id-card-width">
+                                            <Form.Label>{t('idCard.width')}</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                step="0.1"
+                                                value={idCardConfig?.width || 85.6}
+                                                onChange={(e) => setIdCardConfig(prev => ({ ...prev, width: Number(e.target.value) }))}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="id-card-height">
+                                            <Form.Label>{t('idCard.height')}</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                step="0.1"
+                                                value={idCardConfig?.height || 53.98}
+                                                onChange={(e) => setIdCardConfig(prev => ({ ...prev, height: Number(e.target.value) }))}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+
+                                <hr />
+
+                                <Card.Title className="mb-3">{t('idCard.background')}</Card.Title>
+                                <Row className="g-3 mb-4">
+                                    <Col md={6}>
+                                        <Form.Group controlId="id-card-background">
+                                            <Form.Label>{t('idCard.uploadBackground')}</Form.Label>
+                                            <Form.Control
+                                                type="file"
+                                                accept="image/*"
+                                                disabled={!canEdit}
+                                                onChange={(e) => {
+                                                    const file = e.target.files[0];
+                                                    if (file) {
+                                                        setBgFile(file);
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => setBgPreview(reader.result);
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Label>{t('idCard.currentBackground')}</Form.Label>
+                                        <div className="border rounded p-2 bg-light text-center" style={{ minHeight: '80px' }}>
+                                            {(bgPreview || idCardConfig?.backgroundUrl) ? (
+                                                <img
+                                                    src={bgPreview || idCardConfig.backgroundUrl}
+                                                    alt="Background"
+                                                    style={{ maxWidth: '100%', maxHeight: '120px', objectFit: 'contain' }}
+                                                />
+                                            ) : (
+                                                <span className="text-muted small">{t('idCard.noBackground')}</span>
+                                            )}
+                                        </div>
+                                    </Col>
+                                </Row>
+
+                                <hr />
+
+                                <Card.Title className="mb-3">{t('idCard.selectFields')}</Card.Title>
+                                <Row className="g-2">
+                                    {['fullName', 'code', 'level', 'phoneNumber', 'church', 'address', 'gender', 'birthdate'].map(field => (
+                                        <Col xs={6} md={4} lg={3} key={field}>
+                                            <Form.Check
+                                                type="checkbox"
+                                                id={`field-${field}`}
+                                                label={t(`idCard.fields.${field}`)}
+                                                checked={idCardConfig?.selectedFields?.includes(field) || false}
+                                                disabled={!canEdit}
+                                                onChange={(e) => {
+                                                    setIdCardConfig(prev => {
+                                                        const fields = prev.selectedFields || [];
+                                                        if (e.target.checked) {
+                                                            return { ...prev, selectedFields: [...fields, field] };
+                                                        } else {
+                                                            return { ...prev, selectedFields: fields.filter(f => f !== field) };
+                                                        }
+                                                    });
+                                                }}
+                                            />
+                                        </Col>
+                                    ))}
+                                </Row>
+
+                                {canEdit && (
+                                    <div className="d-flex justify-content-end mt-4">
+                                        <Button
+                                            variant="primary"
+                                            disabled={idCardSaving}
+                                            onClick={async () => {
+                                                try {
+                                                    setIdCardSaving(true);
+                                                    setError(null);
+
+                                                    // Upload background if a new file was selected
+                                                    if (bgFile) {
+                                                        const uploadResult = await idCardService.uploadBackground(bgFile);
+                                                        setIdCardConfig(prev => ({ ...prev, backgroundUrl: uploadResult.backgroundUrl }));
+                                                        setBgFile(null);
+                                                        setBgPreview(null);
+                                                    }
+
+                                                    // Save dimensions and fields
+                                                    await idCardService.updateConfig({
+                                                        width: idCardConfig.width,
+                                                        height: idCardConfig.height,
+                                                        selectedFields: idCardConfig.selectedFields
+                                                    });
+
+                                                    setSuccess(t('settings.saveSuccess'));
+                                                    setTimeout(() => setSuccess(null), 3000);
+                                                } catch (err) {
+                                                    console.error('Error saving ID card config:', err);
+                                                    setError(t('settings.saveError'));
+                                                } finally {
+                                                    setIdCardSaving(false);
+                                                }
+                                            }}
+                                            className="px-5"
+                                        >
+                                            {idCardSaving ? t('common.processing') : t('settings.saveAll')}
+                                        </Button>
+                                    </div>
+                                )}
                             </Card.Body>
                         </Card>
                     </Tab>

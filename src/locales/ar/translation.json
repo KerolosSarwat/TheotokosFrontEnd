@@ -12,7 +12,9 @@
         "profile": "ملفي الشخصي",
         "logout": "تسجيل الخروج",
         "settings": "الإعدادات",
-        "degreeReport": "تقرير الدرجات"
+        "degreeReport": "تقرير الدرجات",
+        "archive": "الأرشيف والنسخ الاحتياطي",
+        "idCards": "كروت الهوية"
     },
     "common": {
         "search": "بحث...",
@@ -47,7 +49,9 @@
         "students": "طلاب",
         "filterByLevel": "تصفية حسب المستوى",
         "filterByDate": "تصفية حسب التاريخ",
-        "selectAll": "تحديد الكل"
+        "selectAll": "تحديد الكل",
+        "status": "الحالة",
+        "pendingStatus": "معلق"
     },
     "subjects": {
         "agbya": "الأجبية",
@@ -230,5 +234,66 @@
         "successDetail": "تم تحديث {{count}} طالب لـ {{term}} بنجاح.",
         "failedTitle": "أكواد الطلاب غير موجودة / فشلت",
         "uploadAnother": "رفع ملف آخر"
+    },
+    "archive": {
+        "title": "الأرشيف والنسخ الاحتياطي",
+        "subtitle": "مزامنة بيانات المستخدمين من قاعدة البيانات الفورية إلى أرشيف Firestore",
+        "syncNow": "مزامنة الآن",
+        "syncing": "جاري المزامنة...",
+        "lastSync": "آخر مزامنة",
+        "syncStatus": "حالة المزامنة",
+        "success": "ناجحة",
+        "failed": "فشلت",
+        "never": "لم تتم المزامنة بعد",
+        "rtdbCount": "قاعدة البيانات الفورية",
+        "archiveCount": "أرشيف Firestore",
+        "users": "المستخدمين",
+        "pendingUsers": "المستخدمين المعلقين",
+        "syncedCount": "تمت مزامنتهم",
+        "deletedCount": "تم حذفهم",
+        "errorsCount": "أخطاء",
+        "duration": "المدة",
+        "recentSnapshots": "النسخ الاحتياطية الأخيرة",
+        "snapshotDate": "التاريخ",
+        "snapshotUsers": "المستخدمين",
+        "snapshotPending": "المعلقين",
+        "noSnapshots": "لا توجد نسخ احتياطية بعد",
+        "syncSuccess": "تمت مزامنة الأرشيف بنجاح!",
+        "syncError": "فشلت مزامنة الأرشيف. يرجى المحاولة مرة أخرى.",
+        "statusError": "فشل تحميل حالة الأرشيف.",
+        "dataComparison": "مقارنة البيانات",
+        "matched": "متزامن",
+        "outOfSync": "غير متزامن"
+    },
+    "idCard": {
+        "title": "منشئ كروت الهوية",
+        "settingsTab": "إعدادات كرت الهوية",
+        "dimensions": "أبعاد الكارت",
+        "width": "العرض (مم)",
+        "height": "الارتفاع (مم)",
+        "background": "صورة الخلفية",
+        "uploadBackground": "رفع صورة الخلفية",
+        "currentBackground": "الخلفية الحالية",
+        "noBackground": "لم يتم رفع خلفية",
+        "selectFields": "الحقول المعروضة على الكارت",
+        "selectedUsers": "المستخدمين المحددين",
+        "selectAll": "تحديد الكل",
+        "downloadSingle": "تحميل كرت الهوية",
+        "downloadBulk": "تحميل الكل كملف ZIP",
+        "printCards": "طباعة الكروت",
+        "preview": "معاينة الكارت",
+        "noUsersSelected": "لم يتم تحديد مستخدمين",
+        "generating": "جاري إنشاء الكروت...",
+        "downloadComplete": "اكتمل التحميل!",
+        "fields": {
+            "fullName": "الاسم بالكامل",
+            "code": "الكود",
+            "level": "المرحلة",
+            "phoneNumber": "رقم الهاتف",
+            "church": "الكنيسة",
+            "address": "العنوان",
+            "gender": "النوع",
+            "birthdate": "تاريخ الميلاد"
+        }
     }
 }

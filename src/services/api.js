@@ -1,6 +1,6 @@
 // API configuration
-const API_BASE_URL = 'https://theotokosbackend-production.up.railway.app/api';
-// const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://theotokosbackend-production.up.railway.app/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // User endpoints
 export const USER_API = {
@@ -17,6 +17,12 @@ export const USER_API = {
   MARK_ATTENDANCE: (code) => `${API_BASE_URL}/users/attendance/${code}`,
   SYNC_ATTENDANCE: `${API_BASE_URL}/users/attendance-sync`,
   APPROVE: (code) => `${API_BASE_URL}/users/approve/${code}`,
+
+  // Archive/Backup
+  SYNC_ARCHIVE: `${API_BASE_URL}/users/sync-archive`,
+  ARCHIVE_STATUS: `${API_BASE_URL}/users/archive/status`,
+  ARCHIVE_SNAPSHOT: (date) => `${API_BASE_URL}/users/archive/snapshot/${date}`,
+  GET_ARCHIVED_USER: (code) => `${API_BASE_URL}/users/archive/${code}`,
 
   // Portal User Management
   PORTAL_SYNC: `${API_BASE_URL}/users/portal/sync`,
@@ -39,6 +45,13 @@ export const FIRESTORE_API = {
 export const CONFIG_API = {
   GET_CONFIG: `${API_BASE_URL}/config`,
   UPDATE_CONFIG: `${API_BASE_URL}/config`
+};
+
+// ID Card endpoints
+export const ID_CARD_API = {
+  GET_CONFIG: `${API_BASE_URL}/id-card/config`,
+  UPDATE_CONFIG: `${API_BASE_URL}/id-card/config`,
+  UPLOAD_BACKGROUND: `${API_BASE_URL}/id-card/upload-background`,
 };
 
 // Collections

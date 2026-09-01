@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { USER_API, FIRESTORE_API, CONFIG_API } from './api';
+import { USER_API, FIRESTORE_API, CONFIG_API, ID_CARD_API } from './api';
 import { auth } from '../firebase'; // Import auth to get token
 
 // Create Axios Instance
@@ -192,6 +192,47 @@ export const userService = {
       throw error;
     }
   },
+
+  // Archive/Backup services
+  syncArchive: async () => {
+    try {
+      const response = await api.post(USER_API.SYNC_ARCHIVE);
+      return response.data;
+    } catch (error) {
+      console.error('Error syncing archive:', error);
+      throw error;
+    }
+  },
+
+  getArchiveStatus: async () => {
+    try {
+      const response = await api.get(USER_API.ARCHIVE_STATUS);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching archive status:', error);
+      throw error;
+    }
+  },
+
+  getArchivedUser: async (code) => {
+    try {
+      const response = await api.get(USER_API.GET_ARCHIVED_USER(code));
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching archived user ${code}:`, error);
+      throw error;
+    }
+  },
+
+  getArchiveSnapshot: async (date) => {
+    try {
+      const response = await api.get(USER_API.ARCHIVE_SNAPSHOT(date));
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching snapshot for ${date}:`, error);
+      throw error;
+    }
+  },
 };
 
 
@@ -270,6 +311,43 @@ export const configService = {
       return response.data;
     } catch (error) {
       console.error('Error updating config:', error);
+      throw error;
+    }
+  }
+};
+
+// ID Card service functions
+export const idCardService = {
+  getConfig: async () => {
+    try {
+      const response = await api.get(ID_CARD_API.GET_CONFIG);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching ID card config:', error);
+      throw error;
+    }
+  },
+
+  updateConfig: async (configData) => {
+    try {
+      const response = await api.patch(ID_CARD_API.UPDATE_CONFIG, configData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating ID card config:', error);
+      throw error;
+    }
+  },
+
+  uploadBackground: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('background', file);
+      const response = await api.post(ID_CARD_API.UPLOAD_BACKGROUND, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading background image:', error);
       throw error;
     }
   }

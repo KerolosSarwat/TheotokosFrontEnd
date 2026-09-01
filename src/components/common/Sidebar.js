@@ -71,6 +71,17 @@ const Sidebar = () => {
             {t('nav.degreeReport')}
           </Nav.Link>
         </Nav.Item>
+        <Nav.Item>
+          <Nav.Link
+            as={Link}
+            to="/id-cards"
+            active={location.pathname === '/id-cards'}
+            className="rounded-3 d-flex align-items-center py-2 px-3"
+          >
+            <i className="bi bi-person-badge me-2"></i>
+            {t('nav.idCards')}
+          </Nav.Link>
+        </Nav.Item>
 
 
 
@@ -132,6 +143,19 @@ const Sidebar = () => {
             >
               <i className="bi bi-gear me-2"></i>
               {t('nav.settings')}
+            </Nav.Link>
+          </Nav.Item>
+        )}
+        {hasPermission('users', 'view') && (
+          <Nav.Item>
+            <Nav.Link
+              as={Link}
+              to="/admin/archive"
+              active={location.pathname === '/admin/archive'}
+              className="rounded-3 d-flex align-items-center py-2 px-3"
+            >
+              <i className="bi bi-cloud-arrow-up me-2"></i>
+              {t('nav.archive')}
             </Nav.Link>
           </Nav.Item>
         )}

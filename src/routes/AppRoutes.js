@@ -15,12 +15,14 @@ import PenddingUserList from '../components/users/PenddingUserList';
 import UserForm from '../components/users/UserForm';
 import UserDetails from '../components/users/UserDetails';
 import PortalUserList from '../components/admin/PortalUserList';
+import ArchiveSync from '../components/admin/ArchiveSync';
 import Notification from '../components/users/NotificationForm';
 import Profile from '../components/profile/Profile';
 import StudentDegrees from '../components/users/StudentDegrees';
 import BulkDegreeUpload from '../components/users/BulkDegreeUpload';
 import DegreeReport from '../components/users/DegreeReport';
 import Settings from '../components/settings/Settings';
+import IDCardGenerator from '../components/users/IDCardGenerator';
 
 // Auth Components
 import Login from '../components/auth/Login';
@@ -86,6 +88,11 @@ const AppRoutes = () => {
                 <Route path="/users/edit/:code" element={<UserForm />} />
                 <Route path="/users/:code" element={<UserDetails />} />
                 <Route path="/admin/portal-users" element={<PortalUserList />} />
+                <Route path="/admin/archive" element={
+                    <ProtectedRoute requiredPermission={{ module: 'users', action: 'view' }}>
+                        <ArchiveSync />
+                    </ProtectedRoute>
+                } />
                 <Route path="/settings" element={
                     <ProtectedRoute requiredPermission={{ module: 'settings', action: 'view' }}>
                         <Settings />
@@ -99,6 +106,7 @@ const AppRoutes = () => {
                     </ProtectedRoute>
                 } />
                 <Route path="/degree-report" element={<DegreeReport />} />
+                <Route path="/id-cards" element={<IDCardGenerator />} />
 
                 {/* Firestore Routes */}
                 <Route path="/firestore/agbya" element={<AgbyaList />} />

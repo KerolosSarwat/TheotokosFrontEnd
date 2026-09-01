@@ -12,7 +12,9 @@
         "profile": "My Profile",
         "logout": "Logout",
         "settings": "Settings",
-        "degreeReport": "Degree Report"
+        "degreeReport": "Degree Report",
+        "archive": "Archive & Backup",
+        "idCards": "ID Cards"
     },
     "common": {
         "search": "Search...",
@@ -47,7 +49,9 @@
         "students": "students",
         "filterByLevel": "Filter by Level",
         "filterByDate": "Filter by Date",
-        "selectAll": "Select All"
+        "selectAll": "Select All",
+        "status": "Status",
+        "pendingStatus": "Pending"
     },
     "subjects": {
         "agbya": "Agbya",
@@ -230,5 +234,66 @@
         "successDetail": "Updated {{count}} students for {{term}} successfully.",
         "failedTitle": "Student Codes Not Found / Failed",
         "uploadAnother": "Upload Another File"
+    },
+    "archive": {
+        "title": "Archive & Backup",
+        "subtitle": "Sync users data from Realtime Database to Firestore archive",
+        "syncNow": "Sync Now",
+        "syncing": "Syncing...",
+        "lastSync": "Last Sync",
+        "syncStatus": "Sync Status",
+        "success": "Success",
+        "failed": "Failed",
+        "never": "Never synced",
+        "rtdbCount": "Realtime DB",
+        "archiveCount": "Firestore Archive",
+        "users": "Users",
+        "pendingUsers": "Pending Users",
+        "syncedCount": "Synced",
+        "deletedCount": "Deleted",
+        "errorsCount": "Errors",
+        "duration": "Duration",
+        "recentSnapshots": "Recent Snapshots",
+        "snapshotDate": "Date",
+        "snapshotUsers": "Users",
+        "snapshotPending": "Pending",
+        "noSnapshots": "No snapshots yet",
+        "syncSuccess": "Archive sync completed successfully!",
+        "syncError": "Archive sync failed. Please try again.",
+        "statusError": "Failed to load archive status.",
+        "dataComparison": "Data Comparison",
+        "matched": "In Sync",
+        "outOfSync": "Out of Sync"
+    },
+    "idCard": {
+        "title": "ID Card Generator",
+        "settingsTab": "ID Card Settings",
+        "dimensions": "Card Dimensions",
+        "width": "Width (mm)",
+        "height": "Height (mm)",
+        "background": "Background Image",
+        "uploadBackground": "Upload Background",
+        "currentBackground": "Current Background",
+        "noBackground": "No background uploaded",
+        "selectFields": "Fields to Display on Card",
+        "selectedUsers": "Selected Users",
+        "selectAll": "Select All",
+        "downloadSingle": "Download ID Card",
+        "downloadBulk": "Download All as ZIP",
+        "printCards": "Print Cards",
+        "preview": "Card Preview",
+        "noUsersSelected": "No users selected",
+        "generating": "Generating IDs...",
+        "downloadComplete": "Download complete!",
+        "fields": {
+            "fullName": "Full Name",
+            "code": "Code",
+            "level": "Level",
+            "phoneNumber": "Phone Number",
+            "church": "Church",
+            "address": "Address",
+            "gender": "Gender",
+            "birthdate": "Birthdate"
+        }
     }
 }

@@ -130,6 +130,19 @@ const MobileSidebar = ({ show, onHide }) => {
             </Nav.Link>
           </Nav.Item>
 
+          <Nav.Item>
+            <Nav.Link
+              as={Link}
+              to="/id-cards"
+              onClick={onHide}
+              active={location.pathname === '/id-cards'}
+              className={navLinkClass(location.pathname === '/id-cards')}
+            >
+              <i className="bi bi-person-badge me-3 fs-5"></i>
+              {t('nav.idCards')}
+            </Nav.Link>
+          </Nav.Item>
+
           <div className="border-top my-3"></div>
 
           <h6 className="sidebar-heading px-3 mb-2 text-muted text-uppercase fw-bold small">
@@ -212,11 +225,26 @@ const MobileSidebar = ({ show, onHide }) => {
                 as={Link}
                 to="/admin/portal-users"
                 onClick={onHide}
-                active={location.pathname.startsWith('/admin')}
-                className={navLinkClass(location.pathname.startsWith('/admin'))}
+                active={location.pathname === '/admin/portal-users'}
+                className={navLinkClass(location.pathname === '/admin/portal-users')}
               >
                 <i className="bi bi-shield-lock me-3 fs-5"></i>
                 Staff
+              </Nav.Link>
+            </Nav.Item>
+          )}
+
+          {hasPermission('users', 'view') && (
+            <Nav.Item>
+              <Nav.Link
+                as={Link}
+                to="/admin/archive"
+                onClick={onHide}
+                active={location.pathname === '/admin/archive'}
+                className={navLinkClass(location.pathname === '/admin/archive')}
+              >
+                <i className="bi bi-cloud-arrow-up me-3 fs-5"></i>
+                {t('nav.archive')}
               </Nav.Link>
             </Nav.Item>
           )}

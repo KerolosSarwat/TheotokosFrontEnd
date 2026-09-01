@@ -215,29 +215,60 @@ const UserList = () => {
     fetchUsers();
   }, []);
 
-  const exportToExcel = () => {
-    // Prepare data for export
-    const dataForExport = sortedUsers.map(user => ({
-      [t('users.code')]: user.code || '',
-      [t('users.fullName')]: user.fullName || '',
-      [t('common.address')]: user.address,
-      [t('users.level')]: user.level || 'N/A',
-      [t('users.phone')]: user.phoneNumber || 'N/A',
-      [t('users.church')]: user.church || 'N/A'
-    }));
+  const exportToExcel = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch pending users
+      const pendingUsersData = await userService.getPenddingUsers();
+      const pendingUsersList = pendingUsersData ? Object.values(pendingUsersData) : [];
+      
+      // Get all active users
+      const allActiveUsers = Object.values(users);
+      
+      // Prepare active users data
+      const activeUsersExport = allActiveUsers.map(user => ({
+        [t('users.code')]: user.code || '',
+        [t('users.fullName')]: user.fullName || '',
+        [t('common.address')]: user.address,
+        [t('users.level')]: user.level || 'N/A',
+        [t('users.phone')]: user.phoneNumber || 'N/A',
+        [t('users.church')]: user.church || 'N/A',
+        [t('common.status')]: t('common.active')
+      }));
+      
+      // Prepare pending users data
+      const pendingUsersExport = pendingUsersList.map(user => ({
+        [t('users.code')]: user.code || '',
+        [t('users.fullName')]: user.fullName || '',
+        [t('common.address')]: user.address,
+        [t('users.level')]: user.level || 'N/A',
+        [t('users.phone')]: user.phoneNumber || 'N/A',
+        [t('users.church')]: user.church || 'N/A',
+        [t('common.status')]: t('common.pendingStatus')
+      }));
+      
+      // Combine both
+      const combinedExport = [...activeUsersExport, ...pendingUsersExport];
 
-    // Create worksheet
-    const ws = XLSX.utils.json_to_sheet(dataForExport);
+      // Create worksheet
+      const ws = XLSX.utils.json_to_sheet(combinedExport);
 
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Users");
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "All Users");
 
-    // Generate file name with timestamp
-    const fileName = `users_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      // Generate file name with timestamp
+      const fileName = `all_users_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
-    // Export to Excel
-    XLSX.writeFile(wb, fileName);
+      // Export to Excel
+      XLSX.writeFile(wb, fileName);
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert('Error exporting to Excel. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFileUpload = (event) => {
