@@ -14,7 +14,7 @@ const Register = () => {
         confirmPassword: ''
     });
     const [error, setError] = useState('');
-    const [termsAccepted, setTermsAccepted] = useState(false);
+
 
     const { register, isAuthenticated } = useAuth();
     const navigate = useNavigate();
@@ -50,10 +50,6 @@ const Register = () => {
             return;
         }
 
-        if (!termsAccepted) {
-            setError('You must accept the Terms of Service and Privacy Policy');
-            return;
-        }
 
         setIsLoading(true);
 
@@ -162,17 +158,7 @@ const Register = () => {
                     />
                 </FloatingLabel>
 
-                <Form.Check
-                    type="checkbox"
-                    id="terms"
-                    label={
-                        <span className="small text-muted"> I agree to the <Link to="/terms" className="text-decoration-none">Terms of Service</Link> and <Link to="/privacy" className="text-decoration-none">Privacy Policy</Link></span>
-                    }
-                    className="mb-4"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    required
-                />
+
 
                 <Button
                     variant="primary"
