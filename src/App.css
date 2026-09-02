@@ -627,11 +627,24 @@
   .nav-link,
   .dropdown-item,
   .btn,
-  .form-check-input,
   .form-check-label {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
+  }
+
+  .form-check-input {
+    width: 1.5em;
+    height: 1.5em;
+    margin-top: 0.15em;
+    cursor: pointer;
+  }
+
+  .form-check {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
   }
 
   .dropdown-item {
