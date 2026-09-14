@@ -4,10 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
 import CreateAgbyaDocument from './CreateAgbyaDocument';
-import { AGE_LEVEL_MAP, truncateText } from '../../utils/constants';
+import { truncateText } from '../../utils/constants';
+import { useConfig } from '../../context/ConfigContext';
 
 const AgbyaList = () => {
   const { t } = useTranslation();
+  const { getLevelMap } = useConfig();
+  const AGE_LEVEL_MAP = getLevelMap();
   const [showModal, setShowModal] = useState(false);
   const [editDocument, setEditDocument] = useState(null);
   const [documents, setDocuments] = useState([]);

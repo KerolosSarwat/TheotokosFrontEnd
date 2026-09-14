@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useConfig } from '../../context/ConfigContext';
 import { userService } from '../../services/services';
 import { Table, Button, Card, Form, InputGroup, Modal, Badge, Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -15,6 +16,7 @@ import StudentIDCard from './StudentIDCard';
 const UserList = () => {
   const { t } = useTranslation();
   const { hasPermission } = useAuth();
+  const { getLevelNames } = useConfig();
   const [users, setUsers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,21 +24,17 @@ const UserList = () => {
   const [selectedLevels, setSelectedLevels] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState({});
 
-  // Dynamic levels from data
+  // Dynamic levels from config + any extra levels found in user data
   const ALL_LEVELS = useMemo(() => {
-    const levels = new Set([
-      "حضانة", "KG1", "KG2",
-      "أولى ابتدائى", "ثانية ابتدائى", "ثالثة ابتدائى",
-      "رابعة ابتدائى", "خامسة ابتدائى", "سادسة ابتدائى",
-      "اعدادى", "ثانوى ", "جامعة أو خريج"
-    ]);
+    const configLevels = getLevelNames();
+    const levels = new Set(configLevels);
     if (users) {
       Object.values(users).forEach(u => {
         if (u.level) levels.add(u.level);
       });
     }
-    return Array.from(levels).sort();
-  }, [users]);
+    return Array.from(levels);
+  }, [users, getLevelNames]);
   const [sortConfig, setSortConfig] = useState({
     key: 'code',
     direction: 'ascending'

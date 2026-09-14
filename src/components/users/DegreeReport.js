@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Table, Card, Form, Button, Badge, InputGroup, Dropdown } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { userService } from '../../services/services';
+import { useConfig } from '../../context/ConfigContext';
 import * as XLSX from 'xlsx';
 
 const DegreeReport = () => {
@@ -12,6 +13,7 @@ const DegreeReport = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedLevels, setSelectedLevels] = useState([]);
     const [selectedTerm, setSelectedTerm] = useState('firstTerm');
+    const { getLevelNames } = useConfig();
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -21,19 +23,15 @@ const DegreeReport = () => {
     const [sortConfig, setSortConfig] = useState({ key: 'code', direction: 'ascending' });
 
     const ALL_LEVELS = useMemo(() => {
-        const levels = new Set([
-            "حضانة",
-            "أولى ابتدائى", "ثانية ابتدائى", "ثالثة ابتدائى",
-            "رابعة ابتدائى", "خامسة ابتدائى", "سادسة ابتدائى",
-            "اعدادى", "ثانوى ", "جامعة أو خريج"
-        ]);
+        const configLevels = getLevelNames();
+        const levels = new Set(configLevels);
         if (users) {
             Object.values(users).forEach(u => {
                 if (u.level) levels.add(u.level);
             });
         }
-        return Array.from(levels).sort();
-    }, [users]);
+        return Array.from(levels);
+    }, [users, getLevelNames]);
 
     const TERMS = [
         { value: 'firstTerm', label: t('terms.first') },

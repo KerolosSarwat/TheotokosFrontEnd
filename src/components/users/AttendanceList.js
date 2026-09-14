@@ -1,6 +1,7 @@
 // components/AttendanceReport/AttendanceReport.js
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { userService } from '../../services/services';
+import { useConfig } from '../../context/ConfigContext';
 import { Table, Card, Form, InputGroup, Button, Modal, Badge, Dropdown } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx';
@@ -25,23 +26,14 @@ const AttendanceReport = () => {
     direction: 'ascending'
   });
 
+  const { getLevelNames } = useConfig();
+
   useEffect(() => {
     document.title = `${t('attendance.title')} | Firebase Portal`;
   }, [t]);
 
-  // Common levels for filtering
-  const LEVELS = [
-    'حضانة',
-    'أولى ابتدائى',
-    'ثانية ابتدائى',
-    'ثالثة ابتدائى',
-    'رابعة ابتدائى',
-    'خامسة ابتدائى',
-    'سادسة ابتدائى',
-    'إعدادى',
-    'ثانوى',
-    'جامعيين و خريجين',
-  ];
+  // Dynamic levels from config
+  const LEVELS = useMemo(() => getLevelNames(), [getLevelNames]);
 
   const [syncing, setSyncing] = useState(false);
 

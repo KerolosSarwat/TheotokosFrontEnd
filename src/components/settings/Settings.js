@@ -1,17 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Form, Button, Row, Col, Alert, Tabs, Tab, Spinner } from 'react-bootstrap';
+import { Card, Form, Button, Row, Col, Alert, Tabs, Tab, Spinner, Table, Modal, Badge } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { configService, idCardService } from '../../services/services';
 import { useAuth } from '../../context/AuthContext';
+import { useConfig } from '../../context/ConfigContext';
 
 const Settings = () => {
     const { t } = useTranslation();
     const { hasPermission } = useAuth();
+    const { refreshConfig } = useConfig();
     const [config, setConfig] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+
+    // Level editing state
+    const [showLevelModal, setShowLevelModal] = useState(false);
+    const [editingLevel, setEditingLevel] = useState(null);
+    const [levelForm, setLevelForm] = useState({
+        arName: '', engName: '', id: 0, saintName: '', sortOrder: 1
+    });
 
     // ID Card settings state
     const [idCardConfig, setIdCardConfig] = useState(null);
@@ -145,6 +154,85 @@ const Settings = () => {
             }
         }));
     };
+    // --- Level List CRUD handlers ---
+    const openAddLevelModal = () => {
+        const levels = config?.levelList || [];
+        const maxId = levels.length > 0 ? Math.max(...levels.map(l => l.id)) : -1;
+        const maxSort = levels.length > 0 ? Math.max(...levels.map(l => l.sortOrder)) : 0;
+        setEditingLevel(null);
+        setLevelForm({ arName: '', engName: '', id: maxId + 1, saintName: '', sortOrder: maxSort + 1 });
+        setShowLevelModal(true);
+    };
+
+    const openEditLevelModal = (level) => {
+        setEditingLevel(level);
+        setLevelForm({ ...level });
+        setShowLevelModal(true);
+    };
+
+    const handleLevelFormChange = (field, value) => {
+        setLevelForm(prev => ({
+            ...prev,
+            [field]: field === 'id' || field === 'sortOrder' ? Number(value) : value
+        }));
+    };
+
+    const handleSaveLevel = () => {
+        setConfig(prev => {
+            const levels = [...(prev.levelList || [])];
+            if (editingLevel !== null) {
+                // Edit existing
+                const idx = levels.findIndex(l => l.id === editingLevel.id);
+                if (idx !== -1) levels[idx] = { ...levelForm };
+            } else {
+                // Add new
+                levels.push({ ...levelForm });
+            }
+            levels.sort((a, b) => a.sortOrder - b.sortOrder);
+            return { ...prev, levelList: levels };
+        });
+        setShowLevelModal(false);
+    };
+
+    const handleDeleteLevel = (levelId) => {
+        if (!window.confirm('Are you sure you want to delete this level?')) return;
+        setConfig(prev => ({
+            ...prev,
+            levelList: (prev.levelList || []).filter(l => l.id !== levelId)
+        }));
+    };
+
+    const handleMoveLevelUp = (index) => {
+        setConfig(prev => {
+            const levels = [...(prev.levelList || [])].sort((a, b) => a.sortOrder - b.sortOrder);
+            if (index <= 0) return prev;
+            const temp = levels[index].sortOrder;
+            levels[index].sortOrder = levels[index - 1].sortOrder;
+            levels[index - 1].sortOrder = temp;
+            levels.sort((a, b) => a.sortOrder - b.sortOrder);
+            return { ...prev, levelList: levels };
+        });
+    };
+
+    const handleMoveLevelDown = (index) => {
+        setConfig(prev => {
+            const levels = [...(prev.levelList || [])].sort((a, b) => a.sortOrder - b.sortOrder);
+            if (index >= levels.length - 1) return prev;
+            const temp = levels[index].sortOrder;
+            levels[index].sortOrder = levels[index + 1].sortOrder;
+            levels[index + 1].sortOrder = temp;
+            levels.sort((a, b) => a.sortOrder - b.sortOrder);
+            return { ...prev, levelList: levels };
+        });
+    };
+
+    // --- General config handlers ---
+    const handleGeneralChange = (field, value) => {
+        setConfig(prev => ({
+            ...prev,
+            [field]: field === 'currentYear' ? Number(value) : value
+        }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -154,6 +242,7 @@ const Settings = () => {
 
         try {
             await configService.updateConfig(config);
+            await refreshConfig(); // Refresh global config context so all components pick up changes
             setSuccess(t('settings.saveSuccess'));
             setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
@@ -426,6 +515,147 @@ const Settings = () => {
                             </Card.Body>
                         </Card>
                     </Tab>
+
+                    <Tab eventKey="configuration" title={<><i className="bi bi-gear-wide-connected me-1"></i> Configuration</>}>
+                        {/* General Settings */}
+                        <Card className="shadow-sm border-0 mb-4">
+                            <Card.Body>
+                                <Card.Title className="mb-4">
+                                    <i className="bi bi-sliders me-2"></i>
+                                    General Settings
+                                </Card.Title>
+                                <Row className="g-3">
+                                    <Col md={6}>
+                                        <Form.Group controlId="academicYear">
+                                            <Form.Label>Academic Year</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="e.g. 2027-2028"
+                                                value={config?.academicYear || ''}
+                                                onChange={(e) => handleGeneralChange('academicYear', e.target.value)}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group controlId="currentYear">
+                                            <Form.Label>Current Year Number</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                min="1"
+                                                value={config?.currentYear || 1}
+                                                onChange={(e) => handleGeneralChange('currentYear', e.target.value)}
+                                                disabled={!canEdit}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Card.Body>
+                        </Card>
+
+                        {/* Level List Management */}
+                        <Card className="shadow-sm border-0">
+                            <Card.Body>
+                                <div className="d-flex justify-content-between align-items-center mb-4">
+                                    <Card.Title className="mb-0">
+                                        <i className="bi bi-list-ol me-2"></i>
+                                        Level List
+                                        <Badge bg="secondary" className="ms-2">{(config?.levelList || []).length}</Badge>
+                                    </Card.Title>
+                                    {canEdit && (
+                                        <Button variant="primary" size="sm" onClick={openAddLevelModal}>
+                                            <i className="bi bi-plus-lg me-1"></i> Add Level
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {(!config?.levelList || config.levelList.length === 0) ? (
+                                    <Alert variant="info">
+                                        <i className="bi bi-info-circle me-2"></i>
+                                        No levels configured. Click "Add Level" to create your first level.
+                                    </Alert>
+                                ) : (
+                                    <div className="table-responsive">
+                                        <Table striped bordered hover size="sm">
+                                            <thead className="table-dark">
+                                                <tr>
+                                                    <th style={{ width: '50px' }}>#</th>
+                                                    <th>Arabic Name</th>
+                                                    <th>English Name</th>
+                                                    <th>ID</th>
+                                                    <th>Saint Name</th>
+                                                    <th style={{ width: '80px' }}>Order</th>
+                                                    {canEdit && <th style={{ width: '150px' }}>Actions</th>}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {[...(config.levelList || [])]
+                                                    .sort((a, b) => a.sortOrder - b.sortOrder)
+                                                    .map((level, index, arr) => (
+                                                    <tr key={level.id}>
+                                                        <td className="text-center text-muted">{index + 1}</td>
+                                                        <td>
+                                                            <span className="fw-semibold">{level.arName}</span>
+                                                        </td>
+                                                        <td>{level.engName}</td>
+                                                        <td>
+                                                            <Badge bg="outline-secondary" className="border text-body">{level.id}</Badge>
+                                                        </td>
+                                                        <td>
+                                                            <small className="text-muted">{level.saintName}</small>
+                                                        </td>
+                                                        <td className="text-center">
+                                                            <Badge bg="info">{level.sortOrder}</Badge>
+                                                        </td>
+                                                        {canEdit && (
+                                                            <td>
+                                                                <div className="d-flex gap-1">
+                                                                    <Button
+                                                                        variant="outline-secondary"
+                                                                        size="sm"
+                                                                        onClick={() => handleMoveLevelUp(index)}
+                                                                        disabled={index === 0}
+                                                                        title="Move Up"
+                                                                    >
+                                                                        <i className="bi bi-arrow-up"></i>
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-secondary"
+                                                                        size="sm"
+                                                                        onClick={() => handleMoveLevelDown(index)}
+                                                                        disabled={index === arr.length - 1}
+                                                                        title="Move Down"
+                                                                    >
+                                                                        <i className="bi bi-arrow-down"></i>
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-warning"
+                                                                        size="sm"
+                                                                        onClick={() => openEditLevelModal(level)}
+                                                                        title="Edit"
+                                                                    >
+                                                                        <i className="bi bi-pencil"></i>
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-danger"
+                                                                        size="sm"
+                                                                        onClick={() => handleDeleteLevel(level.id)}
+                                                                        title="Delete"
+                                                                    >
+                                                                        <i className="bi bi-trash"></i>
+                                                                    </Button>
+                                                                </div>
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </Card.Body>
+                        </Card>
+                    </Tab>
                 </Tabs>
 
                 {canEdit && (
@@ -436,6 +666,94 @@ const Settings = () => {
                     </div>
                 )}
             </Form>
+
+            {/* Level Add/Edit Modal */}
+            <Modal show={showLevelModal} onHide={() => setShowLevelModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        <i className={`bi ${editingLevel ? 'bi-pencil-square' : 'bi-plus-circle'} me-2`}></i>
+                        {editingLevel ? 'Edit Level' : 'Add New Level'}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Row className="g-3">
+                        <Col md={6}>
+                            <Form.Group controlId="level-arName">
+                                <Form.Label>Arabic Name <span className="text-danger">*</span></Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={levelForm.arName}
+                                    onChange={(e) => handleLevelFormChange('arName', e.target.value)}
+                                    placeholder="e.g. حضانة"
+                                    dir="rtl"
+                                    required
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                            <Form.Group controlId="level-engName">
+                                <Form.Label>English Name <span className="text-danger">*</span></Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={levelForm.engName}
+                                    onChange={(e) => handleLevelFormChange('engName', e.target.value)}
+                                    placeholder="e.g. primary"
+                                    required
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                            <Form.Group controlId="level-id">
+                                <Form.Label>ID</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    value={levelForm.id}
+                                    onChange={(e) => handleLevelFormChange('id', e.target.value)}
+                                    min="0"
+                                    disabled={!!editingLevel}
+                                />
+                                {editingLevel && <Form.Text className="text-muted">ID cannot be changed after creation</Form.Text>}
+                            </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                            <Form.Group controlId="level-sortOrder">
+                                <Form.Label>Sort Order</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    value={levelForm.sortOrder}
+                                    onChange={(e) => handleLevelFormChange('sortOrder', e.target.value)}
+                                    min="1"
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col md={12}>
+                            <Form.Group controlId="level-saintName">
+                                <Form.Label>Saint Name</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={levelForm.saintName}
+                                    onChange={(e) => handleLevelFormChange('saintName', e.target.value)}
+                                    placeholder="e.g. الملاك ميخائيل"
+                                    dir="rtl"
+                                />
+                            </Form.Group>
+                        </Col>
+                    </Row>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowLevelModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleSaveLevel}
+                        disabled={!levelForm.arName.trim() || !levelForm.engName.trim()}
+                    >
+                        <i className={`bi ${editingLevel ? 'bi-check-lg' : 'bi-plus-lg'} me-1`}></i>
+                        {editingLevel ? 'Save Changes' : 'Add Level'}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };

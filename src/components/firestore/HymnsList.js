@@ -4,12 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
 import CreateHymns from './CreateHymns';
-import { AGE_LEVEL_MAP, truncateText } from '../../utils/constants';
+import { truncateText } from '../../utils/constants';
+import { useConfig } from '../../context/ConfigContext';
 import { Document, Paragraph, TextRun, Table as DocxTable, TableRow, TableCell, WidthType, Packer, AlignmentType, BorderStyle } from 'docx';
 import { saveAs } from 'file-saver';
 
 const HymnsList = () => {
   const { t } = useTranslation();
+  const { getLevelMap } = useConfig();
+  const AGE_LEVEL_MAP = getLevelMap();
   const [showModal, setShowModal] = useState(false);
   const [editDocument, setEditDocument] = useState(null);
   const [documents, setDocuments] = useState([]);

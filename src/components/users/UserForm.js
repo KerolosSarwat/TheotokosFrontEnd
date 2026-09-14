@@ -3,6 +3,7 @@ import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { userService } from '../../services/services';
+import { useConfig } from '../../context/ConfigContext';
 
 const UserForm = () => {
   const { t } = useTranslation();
@@ -11,6 +12,8 @@ const UserForm = () => {
   const type = searchParams.get('type');
   const navigate = useNavigate();
   const isEditMode = !!code;
+  const { getLevelNames } = useConfig();
+  const levelNames = getLevelNames();
 
   const [formData, setFormData] = useState({
     code: isEditMode ? "" : formatDateTime(new Date()).toString(),
@@ -19,7 +22,7 @@ const UserForm = () => {
     birthdate: '',
     phoneNumber: '',
     church: 'العذراء مريم و الشهيد أبانوب',
-    level: 'حضانة',
+    level: levelNames.length > 0 ? levelNames[0] : '',
     address: '',
     admin: false,
     active: false,
@@ -251,18 +254,9 @@ const UserForm = () => {
                     name="level"
                     value={formData.level}
                     onChange={handleChange}>
-                    <option value="حضانة">حضانة</option>
-                    <option value="KG1">KG1</option>
-                    <option value="KG2">KG2</option>
-                    <option value="أولى ابتدائى">أولى ابتدائى</option>
-                    <option value="ثانية ابتدائى">ثانية ابتدائى</option>
-                    <option value="ثالثة ابتدائى">ثالثة ابتدائى</option>
-                    <option value="رابعة ابتدائى">رابعة ابتدائى</option>
-                    <option value="خامسة ابتدائى">خامسة ابتدائى</option>
-                    <option value="سادسة ابتدائى">سادسة ابتدائى</option>
-                    <option value="اعدادى">اعدادى</option>
-                    <option value="ثانوى ">ثانوى</option>
-                    <option value="جامعة أو خريج">جامعة أو خريج</option>
+                    {levelNames.map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
                   </Form.Select>
 
                 </Form.Group>

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { firestoreService } from '../../services/services';
 import { COLLECTIONS } from '../../services/api';
-import { AGE_LEVEL_MAP } from '../../utils/constants';
+import { useConfig } from '../../context/ConfigContext';
 
 const CreateHymns = ({ show, onHide, onDocumentCreated, editDocument }) => {
   const isEditMode = !!editDocument;
+  const { getLevelMap } = useConfig();
+  const AGE_LEVEL_MAP = getLevelMap();
 
   const getInitialFormData = () => ({
     ageLevel: [],
