@@ -96,6 +96,14 @@ const UserDetails = () => {
                     <td>{user.phoneNumber || 'N/A'}</td>
                   </tr>
                   <tr>
+                    <th>{t('users.fatherPhone')}:</th>
+                    <td>{user.fatherPhoneNumber || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <th>{t('users.motherPhone')}:</th>
+                    <td>{user.motherPhoneNumber || 'N/A'}</td>
+                  </tr>
+                  <tr>
                     <th>{t('users.level')}:</th>
                     <td>{user.level || 'N/A'}</td>
                   </tr>

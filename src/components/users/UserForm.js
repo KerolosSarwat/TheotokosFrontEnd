@@ -21,6 +21,8 @@ const UserForm = () => {
     gender: 'Male',
     birthdate: '',
     phoneNumber: '',
+    fatherPhoneNumber: '',
+    motherPhoneNumber: '',
     church: 'العذراء مريم و الشهيد أبانوب',
     level: levelNames.length > 0 ? levelNames[0] : '',
     address: '',
@@ -242,6 +244,31 @@ const UserForm = () => {
                     <option value="العذراء مريم و الأنبا صموئيل">العذراء مريم و الأنبا صموئيل</option>
                     <option value="الأنبا شنودة الهضبة العليا">الأنبا شنودة الهضبة العليا</option>
                   </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>{t('users.fatherPhone')}</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="fatherPhoneNumber"
+                    value={formData.fatherPhoneNumber || ''}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>{t('users.motherPhone')}</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="motherPhoneNumber"
+                    value={formData.motherPhoneNumber || ''}
+                    onChange={handleChange}
+                  />
                 </Form.Group>
               </Col>
             </Row>

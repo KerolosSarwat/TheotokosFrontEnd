@@ -88,6 +88,8 @@
         "code": "Code",
         "level": "Level",
         "phone": "Phone Number",
+        "fatherPhone": "Father Phone Number",
+        "motherPhone": "Mother Phone Number",
         "church": "Church",
         "quickView": "Quick View",
         "fullProfile": "Full Profile",

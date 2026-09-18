@@ -88,6 +88,8 @@
         "code": "الكود",
         "level": "المرتبة/المرحلة",
         "phone": "رقم الهاتف",
+        "fatherPhone": "رقم هاتف الأب",
+        "motherPhone": "رقم هاتف الأم",
         "church": "الكنيسة",
         "quickView": "عرض سريع",
         "fullProfile": "الملف الكامل",

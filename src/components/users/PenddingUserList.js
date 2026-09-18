@@ -44,6 +44,8 @@ const UserList = () => {
       [t('users.fullName')]: user.fullName || '',
       [t('users.level')]: user.level || 'N/A',
       [t('users.phone')]: user.phoneNumber || 'N/A',
+      [t('users.fatherPhone')]: user.fatherPhoneNumber || 'N/A',
+      [t('users.motherPhone')]: user.motherPhoneNumber || 'N/A',
       [t('users.church')]: user.church || 'N/A'
     }));
 
@@ -174,6 +176,8 @@ const UserList = () => {
             fullName: item[t('users.fullName')] || item.fullName || item['Full Name'] || '',
             level: item[t('users.level')] || item.level || item.Level || '',
             phoneNumber: item[t('users.phone')] || item.phoneNumber || item['Phone Number'] || '',
+            fatherPhoneNumber: item[t('users.fatherPhone')] || item.fatherPhoneNumber || item['Father Phone Number'] || '',
+            motherPhoneNumber: item[t('users.motherPhone')] || item.motherPhoneNumber || item['Mother Phone Number'] || '',
             church: item[t('users.church')] || item.church || item.Church || ''
           }));
 

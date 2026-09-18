@@ -231,6 +231,8 @@ const UserList = () => {
         [t('common.address')]: user.address,
         [t('users.level')]: user.level || 'N/A',
         [t('users.phone')]: user.phoneNumber || 'N/A',
+        [t('users.fatherPhone')]: user.fatherPhoneNumber || 'N/A',
+        [t('users.motherPhone')]: user.motherPhoneNumber || 'N/A',
         [t('users.church')]: user.church || 'N/A',
         [t('common.status')]: t('common.active')
       }));
@@ -242,6 +244,8 @@ const UserList = () => {
         [t('common.address')]: user.address,
         [t('users.level')]: user.level || 'N/A',
         [t('users.phone')]: user.phoneNumber || 'N/A',
+        [t('users.fatherPhone')]: user.fatherPhoneNumber || 'N/A',
+        [t('users.motherPhone')]: user.motherPhoneNumber || 'N/A',
         [t('users.church')]: user.church || 'N/A',
         [t('common.status')]: t('common.pendingStatus')
       }));
@@ -305,6 +309,8 @@ const UserList = () => {
             // address: item['Address'] || item.address || '',
             level: item.Level || item.level || item[t('users.level')] || '',
             phoneNumber: item['Phone Number'] || item.phoneNumber || item[t('users.phone')] || '',
+            fatherPhoneNumber: item['Father Phone Number'] || item.fatherPhoneNumber || item[t('users.fatherPhone')] || '',
+            motherPhoneNumber: item['Mother Phone Number'] || item.motherPhoneNumber || item[t('users.motherPhone')] || '',
             church: item.Church || item.church || item[t('users.church')] || ''
           }));
 
